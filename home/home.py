@@ -1,6 +1,7 @@
-import sys
-from PySide6.QtWidgets import QMainWindow, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QComboBox
+from PySide6.QtWidgets import QMainWindow, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel
 import serial.tools.list_ports
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 
 class Home(QMainWindow):
     
@@ -18,22 +19,25 @@ class Home(QMainWindow):
 
         self.devices_menu = menu_bar.addMenu("&Devices")
         self.devices_menu.aboutToShow.connect(self.reload_devices)
-        # reload_devices_action = self.devices_menu.addAction("Reload connected devices list")
-        # reload_devices_action.triggered.connect(self.reload_devices)
 
         w = QWidget()
         self.setCentralWidget(w)
 
-        device_selection = QComboBox()
-        self.devices = [tuple(p)[0] for p in list(serial.tools.list_ports.comports())]
-        device_selection.addItems(self.devices)
+        self.text = QPushButton("Text")
 
+        x = []
+        y = []
 
-        main_layout = QVBoxLayout()
-        main_layout.addWidget(device_selection)
+        fig = Figure()
+        ax = fig.add_subplot()
+        ax.plot(x, y)
+        canvas = FigureCanvasQTAgg(fig)
 
-        w.setLayout(main_layout)
+        layout = QHBoxLayout()
+        layout.addWidget(self.text)
+        layout.addWidget(canvas)
 
+        w.setLayout(layout)
     
     def reload_devices(self):
         devices = [tuple(p)[0] for p in list(serial.tools.list_ports.comports())]
@@ -44,4 +48,4 @@ class Home(QMainWindow):
              self.devices_menu.addAction("No devices connected").setEnabled(False)
         
         for dev in devices:
-                self.devices_menu.addAction(dev)
+            self.devices_menu.addAction(dev)
