@@ -1,16 +1,18 @@
 from PySide6.QtWidgets import QMainWindow, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit
+from PySide6.QtWebEngineWidgets import QWebEngineView
 from serial.tools import list_ports
 from serial import Serial
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 
 class Home(QMainWindow):
     
     def __init__(self, app):
         super().__init__()
-
         self.app = app
         self.device = None
+
+        self.doc = None
+        self.update_function = None
+        self.callback_id = None
 
         self.setWindowTitle("Home")
 
@@ -42,35 +44,38 @@ class Home(QMainWindow):
         motor_steps_layout.addWidget(motor_steps_label)
         motor_steps_layout.addWidget(self.motor_steps)
 
+        # Testing ############################################
+        command_test_layout = QHBoxLayout()
+        command_test_label = QLabel("Command test:")
+        self.command_test = QLineEdit()
+
+        input_layout.addLayout(command_test_layout)
+        command_test_layout.addWidget(command_test_label)
+        command_test_layout.addWidget(self.command_test)
+        ######################################################
+
+        self.plot = QWebEngineView()
+        self.plot.setUrl("http://localhost:5006/")
+        layout.addWidget(self.plot)
+
         actions_layout = QHBoxLayout()
         input_layout.addLayout(actions_layout)
 
         self.execute = QPushButton("Execute")
-        self.execute.clicked.connect(self.send_info_to_mcu)
+        self.execute.clicked.connect(self.start_execution)
 
         self.go_to_start = QPushButton("Go to start")
-        self.go_to_start.clicked.connect(lambda: print("Go to start button clicked"))
+        self.go_to_start.clicked.connect(self.move_to_start)
 
         self.go_to_end = QPushButton("Go to end")
-        self.go_to_end.clicked.connect(lambda: print("Go to end button clicked"))
+        self.go_to_end.clicked.connect(self.move_to_end)
 
         actions_layout.addWidget(self.execute)
         actions_layout.addWidget(self.go_to_start)
         actions_layout.addWidget(self.go_to_end)
 
-        self.mcu_time = [0, 1, 2, 3, 4, 5]
-        self.mcu_voltage = [0, 1, 4, 9, 16, 25]
-
-        fig = Figure()
-        ax = fig.add_subplot()
-        ax.plot(self.mcu_time, self.mcu_voltage)
-        canvas = FigureCanvasQTAgg(fig)
-
-        layout.addWidget(canvas)
-
         w.setLayout(layout)
 
-    
     def reload_devices(self):
 
         available_devices = [tuple(p)[0] for p in list(list_ports.comports())]
@@ -87,24 +92,41 @@ class Home(QMainWindow):
         for action in dev_actions:
             action.triggered.connect(lambda s, dev=action: self.select_device(dev.text()))
 
-
     def select_device(self, device):
         self.device = device
         self.selected_device_label.setText(f"Selected device: {device}")
-
     
-    def send_info_to_mcu(self):
+    def start_execution(self):
 
-        if self.device is None:
+        if self.device == None:
             print("No device selected")
             return
 
         try:
             steps = int(self.motor_steps.text())
+            command_test = self.command_test.text()
+
         except ValueError:
             print("Invalid number of steps")
             return
         
         ser = Serial(self.device, 115200)
-        ser.write(f"steps: {steps}".encode("utf-8"))
+        ser.write(f"{command_test}".encode("utf-8"))
         ser.close()
+
+    def move_to_start(self):
+        if self.callback_id == None:
+
+            def add_callback():
+                self.callback_id = self.doc.add_periodic_callback(self.update_function, 1)
+
+            self.doc.add_next_tick_callback(add_callback)
+
+    def move_to_end(self):
+        if self.callback_id != None:
+
+            def remove_callback():
+                self.doc.remove_periodic_callback(self.callback_id)
+                self.callback_id = None
+
+            self.doc.add_next_tick_callback(remove_callback)
