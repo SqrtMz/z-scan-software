@@ -65,10 +65,10 @@ class Home(QMainWindow):
         self.execute.clicked.connect(self.start_execution)
 
         self.go_to_start = QPushButton("Go to start")
-        self.go_to_start.clicked.connect(self.move_to_start)
+        self.go_to_start.clicked.connect(self.go_to_start)
 
         self.go_to_end = QPushButton("Go to end")
-        self.go_to_end.clicked.connect(self.move_to_end)
+        self.go_to_end.clicked.connect(self.go_to_end)
 
         actions_layout.addWidget(self.execute)
         actions_layout.addWidget(self.go_to_start)
@@ -114,7 +114,20 @@ class Home(QMainWindow):
         ser.write(f"{command_test}".encode("utf-8"))
         ser.close()
 
-    def move_to_start(self):
+        self.go_to_start()
+        self.start_data_collection()
+
+    def go_to_start(self):
+        ser = Serial(self.device, 115200)
+        ser.write("go_to_start".encode("utf-8"))
+        ser.close()
+
+    def go_to_end(self):
+        ser = Serial(self.device, 115200)
+        ser.write("go_to_end".encode("utf-8"))
+        ser.close()
+
+    def start_data_collection(self):
         if self.callback_id == None:
 
             def add_callback():
@@ -122,7 +135,7 @@ class Home(QMainWindow):
 
             self.doc.add_next_tick_callback(add_callback)
 
-    def move_to_end(self):
+    def stop_data_collection(self):
         if self.callback_id != None:
 
             def remove_callback():
