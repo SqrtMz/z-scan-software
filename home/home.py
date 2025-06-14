@@ -64,15 +64,15 @@ class Home(QMainWindow):
         self.execute = QPushButton("Execute")
         self.execute.clicked.connect(self.start_execution)
 
-        self.go_to_start = QPushButton("Go to start")
-        self.go_to_start.clicked.connect(self.go_to_start)
+        self.go_to_start_button = QPushButton("Go to start")
+        self.go_to_start_button.clicked.connect(self.go_to_start)
 
-        self.go_to_end = QPushButton("Go to end")
-        self.go_to_end.clicked.connect(self.go_to_end)
+        self.go_to_end_button = QPushButton("Go to end")
+        self.go_to_end_button.clicked.connect(self.go_to_end)
 
         actions_layout.addWidget(self.execute)
-        actions_layout.addWidget(self.go_to_start)
-        actions_layout.addWidget(self.go_to_end)
+        actions_layout.addWidget(self.go_to_start_button)
+        actions_layout.addWidget(self.go_to_end_button)
 
         w.setLayout(layout)
 
