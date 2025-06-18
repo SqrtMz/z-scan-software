@@ -7,7 +7,7 @@ def update_plot(doc, window):
 
 	source = ColumnDataSource({'x': [], 'y': []})
 
-	p = figure(y_range=(-300, 4500), width=400, height=400)
+	p = figure(x_range=(-10, 100), y_range=(0, 1), sizing_mode="stretch_both")
 
 	p.scatter(source=source)
 	p.line(source=source, color="red")

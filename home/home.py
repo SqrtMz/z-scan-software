@@ -1,4 +1,6 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QMainWindow, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QSizePolicy, QStatusBar, QGroupBox, QFormLayout, QComboBox, QFileDialog
+from PySide6.QtWebEngineCore import QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from serial.tools import list_ports
 from serial import Serial
@@ -19,7 +21,9 @@ class Home(QMainWindow):
         menu_bar = self.menuBar()
 
         file_menu = menu_bar.addMenu("&File")
+
         quit_action = file_menu.addAction("Quit")
+        quit_action.setStatusTip("Close this program")
         quit_action.triggered.connect(self.close)
 
         self.devices_menu = menu_bar.addMenu("&Devices")
@@ -33,48 +37,103 @@ class Home(QMainWindow):
         input_layout = QVBoxLayout()
         layout.addLayout(input_layout)
 
-        self.selected_device_label = QLabel("Select a device")
-        input_layout.addWidget(self.selected_device_label)
+        information_group = QGroupBox("Information")
+        information_layout = QHBoxLayout()
+        information_group.setLayout(information_layout)
+        
+        self.selected_device = QLabel("Select a device")
+        information_layout.addWidget(self.selected_device)
 
-        motor_steps_layout = QHBoxLayout()
-        motor_steps_label = QLabel("Motor steps:")
-        self.motor_steps = QLineEdit()
+        self.information_test1 = QLabel("Current state: Standby")
+        information_layout.addWidget(self.information_test1)
 
-        input_layout.addLayout(motor_steps_layout)
-        motor_steps_layout.addWidget(motor_steps_label)
-        motor_steps_layout.addWidget(self.motor_steps)
+        input_layout.addWidget(information_group)
 
-        # Testing ############################################
-        command_test_layout = QHBoxLayout()
-        command_test_label = QLabel("Command test:")
-        self.command_test = QLineEdit()
+        distance_group = QGroupBox("Distance options")
+        distance_group_layout = QFormLayout()
+        distance_group.setLayout(distance_group_layout)
+        
+        self.move_to = QLineEdit()
+        distance_group_layout.addRow(QLabel("Move to:"), self.move_to)
 
-        input_layout.addLayout(command_test_layout)
-        command_test_layout.addWidget(command_test_label)
-        command_test_layout.addWidget(self.command_test)
-        ######################################################
+        self.current_position = QLabel()
+        self.current_position.setText("NA")
+        distance_group_layout.addRow(QLabel("Current position:"), self.current_position)
+
+        input_layout.addWidget(distance_group)
+
+        movement_group = QGroupBox("Movement options")
+        movement_layout = QFormLayout()
+        movement_group.setLayout(movement_layout)
+
+        self.step_size_selector = QComboBox()
+        self.step_size_selector.addItems(["Full step", "1/2 step", "1/4 step", "1/8 step"])
+        movement_layout.addRow(QLabel("Motor step size:"), self.step_size_selector)
+        self.step_size_selector.currentTextChanged.connect(self.step_size_changed)
+
+        input_layout.addWidget(movement_group)
+
+        actions_group = QGroupBox("Actions")
+        actions_layout = QVBoxLayout()
+        actions_group.setLayout(actions_layout)
+
+        actions_row1 = QHBoxLayout()
+
+        self.execute = QPushButton("Execute")
+        self.execute.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.execute.clicked.connect(self.start_execution)
+        actions_row1.addWidget(self.execute)
+
+        self.go_to_start_button = QPushButton("Go to start")
+        self.go_to_start_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.go_to_start_button.clicked.connect(self.go_to_start)
+        actions_row1.addWidget(self.go_to_start_button)
+
+        self.go_to_end_button = QPushButton("Go to end")
+        self.go_to_end_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.go_to_end_button.clicked.connect(self.go_to_end)
+        actions_row1.addWidget(self.go_to_end_button)
+
+        actions_layout.addLayout(actions_row1)
+
+        input_layout.addWidget(actions_group)
+
+        plot_group = QGroupBox("Plot")
+        plot_layout = QVBoxLayout()
+        plot_group.setLayout(plot_layout)
 
         self.plot = QWebEngineView()
         self.plot.setUrl("http://localhost:5006/")
-        layout.addWidget(self.plot)
+        self.plot.setMinimumSize(640, 480)
+        self.plot.setMaximumSize(800, 600)
+        self.plot.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        plot_layout.addWidget(self.plot, alignment=Qt.AlignmentFlag.AlignCenter)
+        profile = QWebEngineProfile.defaultProfile()
+        profile.downloadRequested.connect(self.capture_plot)
 
-        actions_layout = QHBoxLayout()
-        input_layout.addLayout(actions_layout)
+        plot_actions_layout = QVBoxLayout()
 
-        self.execute = QPushButton("Execute")
-        self.execute.clicked.connect(self.start_execution)
+        plot_actions_row1 = QHBoxLayout()
 
-        self.go_to_start_button = QPushButton("Go to start")
-        self.go_to_start_button.clicked.connect(self.go_to_start)
+        self.save_plot_data_button = QPushButton("Save plot data")
+        self.save_plot_data_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.save_plot_data_button.clicked.connect(self.save_plot_data)
+        plot_actions_row1.addWidget(self.save_plot_data_button)
 
-        self.go_to_end_button = QPushButton("Go to end")
-        self.go_to_end_button.clicked.connect(self.go_to_end)
+        self.reset_plot_button = QPushButton("Reset plot")
+        self.reset_plot_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.reset_plot_button.clicked.connect(self.reset_plot)
+        plot_actions_row1.addWidget(self.reset_plot_button)
 
-        actions_layout.addWidget(self.execute)
-        actions_layout.addWidget(self.go_to_start_button)
-        actions_layout.addWidget(self.go_to_end_button)
+        plot_actions_layout.addLayout(plot_actions_row1)
+        plot_layout.addLayout(plot_actions_layout)
+
+        layout.addWidget(plot_group)
 
         w.setLayout(layout)
+
+        self.setStatusBar(QStatusBar(self))
+        self.statusBar().showMessage("Select a device")
 
     def reload_devices(self):
 
@@ -94,24 +153,23 @@ class Home(QMainWindow):
 
     def select_device(self, device):
         self.device = device
-        self.selected_device_label.setText(f"Selected device: {device}")
+        self.selected_device.setText(f"Selected device: {device}")
     
     def start_execution(self):
 
         if self.device == None:
-            print("No device selected")
+            self.statusBar().showMessage("No device selected")
             return
 
         try:
-            steps = int(self.motor_steps.text())
-            command_test = self.command_test.text()
+            new_position = int(self.move_to.text())
 
         except ValueError:
-            print("Invalid number of steps")
+            self.statusBar().showMessage("Invalid position")
             return
         
         ser = Serial(self.device, 115200)
-        ser.write(f"{command_test}".encode("utf-8"))
+        ser.write(f"{new_position}".encode("utf-8"))
         ser.close()
 
         self.go_to_start()
@@ -126,6 +184,9 @@ class Home(QMainWindow):
         ser = Serial(self.device, 115200)
         ser.write("go_to_end".encode("utf-8"))
         ser.close()
+
+    def go_to_distance(self):
+        return
 
     def start_data_collection(self):
         if self.callback_id == None:
@@ -143,3 +204,21 @@ class Home(QMainWindow):
                 self.callback_id = None
 
             self.doc.add_next_tick_callback(remove_callback)
+
+    def step_size_changed(self, text):
+        print(text)
+
+    def capture_plot(self, download):
+        default_filename = download.suggestedFileName()
+
+        path, _ = QFileDialog.getSaveFileName(self, "Save File As", default_filename + ".png", "PNG Image (*.png);; All Files (*)")
+        
+        if path:
+            download.setDownloadFileName(path)
+            download.accept()
+
+    def save_plot_data(self):
+        return
+    
+    def reset_plot(self):
+        return
