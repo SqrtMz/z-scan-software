@@ -4,6 +4,8 @@ from PySide6.QtWebEngineCore import QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from serial.tools import list_ports
 from serial import Serial
+from serial.serialutil import SerialException
+import pandas as pd
 
 class Home(QMainWindow):
     
@@ -11,6 +13,9 @@ class Home(QMainWindow):
         super().__init__()
         self.app = app
         self.device = None
+        self.state = "Standby"
+
+        self.df = pd.DataFrame(columns=['x', 'y'])
 
         self.doc = None
         self.update_function = None
@@ -44,7 +49,7 @@ class Home(QMainWindow):
         self.selected_device = QLabel("Select a device")
         information_layout.addWidget(self.selected_device)
 
-        self.information_test1 = QLabel("Current state: Standby")
+        self.information_test1 = QLabel(f"Current state: {self.state}")
         information_layout.addWidget(self.information_test1)
 
         input_layout.addWidget(information_group)
@@ -104,9 +109,8 @@ class Home(QMainWindow):
 
         self.plot = QWebEngineView()
         self.plot.setUrl("http://localhost:5006/")
-        self.plot.setMinimumSize(640, 480)
-        self.plot.setMaximumSize(800, 600)
-        self.plot.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.plot.setFixedSize(1280, 720)
+        self.plot.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.MinimumExpanding)
         plot_layout.addWidget(self.plot, alignment=Qt.AlignmentFlag.AlignCenter)
         profile = QWebEngineProfile.defaultProfile()
         profile.downloadRequested.connect(self.capture_plot)
@@ -155,35 +159,39 @@ class Home(QMainWindow):
         self.device = device
         self.selected_device.setText(f"Selected device: {device}")
     
-    def start_execution(self):
+    def send_serial_command(self, command: str):
 
         if self.device == None:
             self.statusBar().showMessage("No device selected")
             return
+        
+        try:
+            ser = Serial(self.device, 115200)
+            ser.write(command.encode("utf-8"))
+            ser.close()
+        
+        except SerialException:
+            self.statusBar().showMessage("Invalid device, please check the device selected")
+            return
 
+    def start_execution(self):
         try:
             new_position = int(self.move_to.text())
 
         except ValueError:
             self.statusBar().showMessage("Invalid position")
             return
-        
-        ser = Serial(self.device, 115200)
-        ser.write(f"{new_position}".encode("utf-8"))
-        ser.close()
+
+        self.send_serial_command(new_position)
 
         self.go_to_start()
         self.start_data_collection()
 
     def go_to_start(self):
-        ser = Serial(self.device, 115200)
-        ser.write("go_to_start".encode("utf-8"))
-        ser.close()
+        self.send_serial_command("go_to_start")
 
     def go_to_end(self):
-        ser = Serial(self.device, 115200)
-        ser.write("go_to_end".encode("utf-8"))
-        ser.close()
+        self.send_serial_command("go_to_end")
 
     def go_to_distance(self):
         return
@@ -195,6 +203,7 @@ class Home(QMainWindow):
                 self.callback_id = self.doc.add_periodic_callback(self.update_function, 1)
 
             self.doc.add_next_tick_callback(add_callback)
+                
 
     def stop_data_collection(self):
         if self.callback_id != None:
@@ -218,7 +227,11 @@ class Home(QMainWindow):
             download.accept()
 
     def save_plot_data(self):
-        return
+
+        path, _ = QFileDialog.getSaveFileName(self, "Save File As", "data.csv", "CSV Files (*.csv);;All Files (*)")
+
+        if path:
+            self.df.to_csv(path, index=False)
     
     def reset_plot(self):
-        return
+        self.df = pd.DataFrame(columns=['x', 'y'])
