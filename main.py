@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QApplication
 from home.home import Home
 from bokeh.server.server import Server
 from tornado.ioloop import IOLoop
-from home.bokeh import update_plot
+from home.plot import update_plot
 
 app = QApplication(sys.argv)
 
