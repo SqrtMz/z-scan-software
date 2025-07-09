@@ -12,16 +12,17 @@ import pandas as pd
 class PlotSettings(QWidget):
 	def __init__(self):
 		super().__init__()
+
+		self.main_layout = QHBoxLayout(self)
 		
 		self.plot_group = QGroupBox("Plot")
 		plot_layout = QVBoxLayout()
 		self.plot_group.setLayout(plot_layout)
+		self.main_layout.addWidget(self.plot_group)
 
 		self.plot = QWebEngineView()
 		self.plot.setUrl("http://localhost:5006/")
-		self.plot.setFixedSize(960, 540)
-		self.plot.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.MinimumExpanding)
-		plot_layout.addWidget(self.plot, alignment=Qt.AlignmentFlag.AlignCenter)
+		plot_layout.addWidget(self.plot)
 		profile = QWebEngineProfile.defaultProfile()
 		profile.downloadRequested.connect(self.capture_plot)
 

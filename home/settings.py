@@ -7,22 +7,21 @@ class Settings(QWidget):
 		super().__init__()
 
 		self.home_parent = home_parent
-
 		self.state = "Standby"
 
-		self.input_layout = QVBoxLayout()
+		self.main_layout = QVBoxLayout(self)		
 
 		information_group = QGroupBox("Information")
-		information_layout = QHBoxLayout()
+		information_layout = QFormLayout()
 		information_group.setLayout(information_layout)
 
 		self.selected_device = QLabel("Select a device")
-		information_layout.addWidget(self.selected_device)
+		information_layout.addRow(self.selected_device)
 
-		self.information_test1 = QLabel(f"Current state: {self.state}")
-		information_layout.addWidget(self.information_test1)
+		self.motor_state = QLabel(f"Current state: {self.state}")
+		information_layout.addRow(self.motor_state)
 
-		self.input_layout.addWidget(information_group)
+		self.main_layout.addWidget(information_group)
 
 		distance_group = QGroupBox("Distance options")
 		distance_group_layout = QFormLayout()
@@ -35,7 +34,7 @@ class Settings(QWidget):
 		self.current_position.setText("NA")
 		distance_group_layout.addRow(QLabel("Current position:"), self.current_position)
 
-		self.input_layout.addWidget(distance_group)
+		self.main_layout.addWidget(distance_group)
 
 		movement_group = QGroupBox("Movement options")
 		movement_layout = QFormLayout()
@@ -46,7 +45,7 @@ class Settings(QWidget):
 		movement_layout.addRow(QLabel("Motor step size:"), self.step_size_selector)
 		self.step_size_selector.currentTextChanged.connect(self.step_size_changed)
 
-		self.input_layout.addWidget(movement_group)
+		self.main_layout.addWidget(movement_group)
 
 		actions_group = QGroupBox("Actions")
 		actions_layout = QVBoxLayout()
@@ -71,7 +70,7 @@ class Settings(QWidget):
 
 		actions_layout.addLayout(actions_row1)
 
-		self.input_layout.addWidget(actions_group)
+		self.main_layout.addWidget(actions_group)
 
 
 	def send_serial_command(self, command: str):
@@ -90,6 +89,18 @@ class Settings(QWidget):
 			return
 
 	def start_execution(self):
+		if self.home_parent.device == None:
+			self.home_parent.statusBar().showMessage("No device selected")
+			return
+		
+		try:
+			ser = Serial(self.home_parent.device, 115200)
+			ser.close()
+
+		except SerialException:
+			self.home_parent.statusBar().showMessage("Invalid device, please check the device selected")
+			return
+		
 		try:
 			new_position = int(self.move_to.text())
 

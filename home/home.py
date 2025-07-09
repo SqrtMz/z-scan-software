@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QStatusBar
+from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QStatusBar, QSizePolicy
 from serial.tools import list_ports
 import pandas as pd
 from home.settings import Settings
@@ -6,7 +6,7 @@ from home.plot import PlotSettings
 
 class Home(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, app):
         super().__init__()
         self.device = None
 
@@ -36,13 +36,16 @@ class Home(QMainWindow):
         w = QWidget()
         self.setCentralWidget(w)
 
-        layout = QHBoxLayout()
+        layout = QHBoxLayout(w)
 
         self.settings = Settings(self)
-        layout.addLayout(self.settings.input_layout)
+        layout.addWidget(self.settings)
+        self.settings.setMinimumWidth(275)
+        self.settings.setMaximumWidth(300)
 
         self.plot_settings = PlotSettings()
-        layout.addWidget(self.plot_settings.plot_group)
+        layout.addWidget(self.plot_settings)
+        self.plot_settings.setMinimumSize(320, 240)
 
         w.setLayout(layout)
 
