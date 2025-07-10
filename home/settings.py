@@ -1,4 +1,5 @@
-from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QSizePolicy, QGroupBox, QFormLayout, QComboBox
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QSizePolicy, QGroupBox, QFormLayout, QComboBox, QSlider
 from serial import Serial
 from serial.serialutil import SerialException
 
@@ -18,6 +19,10 @@ class Settings(QWidget):
 		self.selected_device = QLabel("Select a device")
 		information_layout.addRow(self.selected_device)
 
+		self.current_position = QLabel()
+		self.current_position.setText("NA")
+		information_layout.addRow(QLabel("Current position:"), self.current_position)
+
 		self.motor_state = QLabel(f"Current state: {self.state}")
 		information_layout.addRow(self.motor_state)
 
@@ -30,10 +35,6 @@ class Settings(QWidget):
 		self.move_to = QLineEdit()
 		distance_group_layout.addRow(QLabel("Move to:"), self.move_to)
 
-		self.current_position = QLabel()
-		self.current_position.setText("NA")
-		distance_group_layout.addRow(QLabel("Current position:"), self.current_position)
-
 		self.main_layout.addWidget(distance_group)
 
 		movement_group = QGroupBox("Movement options")
@@ -43,7 +44,9 @@ class Settings(QWidget):
 		self.step_size_selector = QComboBox()
 		self.step_size_selector.addItems(["Full step", "1/2 step", "1/4 step", "1/8 step"])
 		movement_layout.addRow(QLabel("Motor step size:"), self.step_size_selector)
-		self.step_size_selector.currentTextChanged.connect(self.step_size_changed)
+
+		self.motor_speed = QSlider(Qt.Orientation.Horizontal)
+		distance_group_layout.addRow(QLabel("Motor speed:"), self.motor_speed)
 
 		self.main_layout.addWidget(movement_group)
 
@@ -102,13 +105,16 @@ class Settings(QWidget):
 			return
 		
 		try:
-			new_position = int(self.move_to.text())
+			new_position = str(int(self.move_to.text())) + ','
+			step_size = str(self.step_size_selector.currentIndex()) + ','
+			motor_speed = str(self.motor_speed.value()) + ','
 
 		except ValueError:
 			self.home_parent.statusBar().showMessage("Invalid position")
 			return
 
-		self.send_serial_command(new_position)
+		print("execute," + new_position + step_size + motor_speed)
+		self.send_serial_command("execute," + new_position + step_size + motor_speed)
 
 		self.go_to_start()
 		self.start_data_collection()
@@ -139,6 +145,3 @@ class Settings(QWidget):
 				self.home_parent.callback_id = None
 
 			self.home_parent.doc.add_next_tick_callback(remove_callback)
-
-	def step_size_changed(self, text):
-		print(text)
