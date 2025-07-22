@@ -1,10 +1,10 @@
 import sys
 from threading import Thread
 from PySide6.QtWidgets import QApplication
-from home.home import Home
+from app.home.home import Home
+from app.plot.plot import update_plot
 from bokeh.server.server import Server
 from tornado.ioloop import IOLoop
-from home.plot import update_plot
 
 app = QApplication(sys.argv)
 

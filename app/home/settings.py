@@ -73,6 +73,20 @@ class Settings(QWidget):
 
 		actions_layout.addLayout(actions_row1)
 
+		actions_row2 = QHBoxLayout()
+
+		self.stop = QPushButton("Stop")
+		self.stop.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+		self.stop.clicked.connect(self.stop_data_collection)
+		actions_row2.addWidget(self.stop)
+
+		self.TEST = QPushButton("TEST")
+		self.TEST.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+		self.TEST.clicked.connect(self.test_fn)
+		actions_row2.addWidget(self.TEST)
+
+		actions_layout.addLayout(actions_row2)
+
 		self.main_layout.addWidget(actions_group)
 
 
@@ -118,6 +132,9 @@ class Settings(QWidget):
 
 		self.go_to_start()
 		self.start_data_collection()
+
+	def test_fn(self):
+		self.send_serial_command("TEST,Debug,pan")
 
 	def go_to_start(self):
 		self.send_serial_command("go_to_start")

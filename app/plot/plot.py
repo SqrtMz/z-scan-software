@@ -3,7 +3,7 @@ from PySide6.QtWebEngineCore import QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from serial import Serial
 from serial.serialutil import SerialException
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, DataRange1d
 from bokeh.plotting import figure
 from bokeh.driving import count
 import pandas as pd
@@ -11,6 +11,8 @@ import pandas as pd
 class PlotSettings(QWidget):
 	def __init__(self):
 		super().__init__()
+		
+		self.df = pd.DataFrame(columns=['x', 'y'])
 
 		self.main_layout = QHBoxLayout(self)
 		
@@ -67,7 +69,7 @@ def update_plot(doc, window):
 
 	source = ColumnDataSource({'x': [], 'y': []})
 
-	p = figure(x_range=(-10, 100), y_range=(0, 1), sizing_mode="stretch_both", x_axis_label="Distance (cm)", y_axis_label="Photodiode Voltage (V)")
+	p = figure(x_range = (0, 100), y_range=(0, 5000), sizing_mode="stretch_both", x_axis_label="Distance (cm)", y_axis_label="Photodiode Voltage (V)")
 
 	p.scatter(source=source)
 	p.line(source=source, color="red")
@@ -89,9 +91,12 @@ def update_plot(doc, window):
 
 		source.stream({'x': [x], 'y': [y]}, rollover=100)
 
-		window.df = pd.concat([window.df, pd.DataFrame[source]], ignore_index=True)
-		
-		print(f"mcu value: {y}")
+		new_data = {
+			"x": x,
+			"y": y
+		}
+
+		window.plot_settings.df = pd.concat([window.plot_settings.df, pd.DataFrame([new_data])], ignore_index=True)
 
 	window.doc = doc
 	window.update_function = update

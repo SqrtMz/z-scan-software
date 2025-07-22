@@ -1,16 +1,14 @@
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QStatusBar, QSizePolicy
 from serial.tools import list_ports
 import pandas as pd
-from home.settings import Settings
-from home.plot import PlotSettings
+from app.home.settings import Settings
+from app.plot.plot import PlotSettings
 
 class Home(QMainWindow):
 
     def __init__(self, app):
         super().__init__()
         self.device = None
-
-        self.df = pd.DataFrame(columns=['x', 'y'])
 
         self.doc = None
         self.update_function = None
