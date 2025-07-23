@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QS
 from PySide6.QtWebEngineCore import QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
 import pandas as pd
-from .plot import create_new_plot
+from app.plot.plot import create_new_plot
 
 class PlotSettings(QWidget):
 	def __init__(self, home_parent):
