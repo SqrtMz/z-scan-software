@@ -6,15 +6,10 @@ from bokeh.driving import count
 import pandas as pd
 
 def create_new_plot(doc, window):
-
-	r = BokehPlot()
-	r.update_plot(doc, window)
+	r = BokehPlot(doc, window)
 
 class BokehPlot:
-	def __init__(self):
-		pass
-
-	def update_plot(self, doc, window):
+	def __init__(self, doc, window):
 
 		source = ColumnDataSource({'x': [], 'y': []})
 
