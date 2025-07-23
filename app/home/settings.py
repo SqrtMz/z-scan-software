@@ -121,7 +121,7 @@ class Settings(QWidget):
 		try:
 			new_position = str(int(self.move_to.text())) + ','
 			step_size = str(self.step_size_selector.currentIndex()) + ','
-			motor_speed = str(self.motor_speed.value()) + ','
+			motor_speed = str(self.motor_speed.value())
 
 		except ValueError:
 			self.home_parent.statusBar().showMessage("Invalid position")
@@ -146,19 +146,19 @@ class Settings(QWidget):
 		return
 
 	def start_data_collection(self):
-		if self.home_parent.callback_id == None:
+		if self.home_parent.plot_settings.callback_id == None:
 
 			def add_callback():
-				self.home_parent.callback_id = self.home_parent.doc.add_periodic_callback(self.home_parent.update_function, 1)
+				self.home_parent.plot_settings.callback_id = self.home_parent.plot_settings.doc.add_periodic_callback(self.home_parent.plot_settings.update_function, 1)
 
-			self.home_parent.doc.add_next_tick_callback(add_callback)
+			self.home_parent.plot_settings.doc.add_next_tick_callback(add_callback)
 				
 
 	def stop_data_collection(self):
-		if self.home_parent.callback_id != None:
+		if self.home_parent.plot_settings.callback_id != None:
 
 			def remove_callback():
-				self.home_parent.doc.remove_periodic_callback(self.home_parent.callback_id)
-				self.home_parent.callback_id = None
+				self.home_parent.plot_settings.doc.remove_periodic_callback(self.home_parent.plot_settings.callback_id)
+				self.home_parent.plot_settings.callback_id = None
 
-			self.home_parent.doc.add_next_tick_callback(remove_callback)
+			self.home_parent.plot_settings.doc.add_next_tick_callback(remove_callback)
