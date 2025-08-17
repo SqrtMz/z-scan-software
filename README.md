@@ -1,2 +1,2 @@
-# z-scan-software-controller
+# z-scan-software
 Bread
