@@ -2,7 +2,6 @@ from serial import Serial
 from serial.serialutil import SerialException
 from bokeh.models import ColumnDataSource
 from bokeh.plotting import figure
-from bokeh.driving import count
 import pandas as pd
 
 def create_new_plot(doc, window):
@@ -18,16 +17,17 @@ class BokehPlot:
 		p.scatter(source=source)
 		p.line(source=source, color="red")
 
-		@count()
-		def update(x):
+		def update():
 
 			try:
 				ser = Serial(window.device, 115200)
-				y = ser.readline(10)
-				y = y.decode("utf-8").strip()
+				
+				data = ser.readline(50).decode("utf-8").strip()
+
+				y, x = data.split(",")
 				ser.close()
 
-			except SerialException:
+			except (SerialException, ValueError):
 				window.statusBar().showMessage("Invalid device, please check the device selected")
 				window.plot_settings.doc.remove_periodic_callback(window.plot_settings.callback_id)
 				window.plot_settings.callback_id = None

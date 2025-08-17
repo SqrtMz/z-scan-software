@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QSizePolicy, QGroupBox, QFormLayout, QComboBox, QSlider
+from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QSizePolicy, QGroupBox, QFormLayout, QSlider
 from serial import Serial
 from serial.serialutil import SerialException
 
@@ -10,7 +10,7 @@ class Settings(QWidget):
 		self.home_parent = home_parent
 		self.state = "Standby"
 
-		self.main_layout = QVBoxLayout(self)		
+		self.main_layout = QVBoxLayout(self)
 
 		information_group = QGroupBox("Information")
 		information_layout = QFormLayout()
@@ -18,10 +18,6 @@ class Settings(QWidget):
 
 		self.selected_device = QLabel("Select a device")
 		information_layout.addRow(self.selected_device)
-
-		self.current_position = QLabel()
-		self.current_position.setText("NA")
-		information_layout.addRow(QLabel("Current position:"), self.current_position)
 
 		self.motor_state = QLabel(f"Current state: {self.state}")
 		information_layout.addRow(self.motor_state)
@@ -32,6 +28,9 @@ class Settings(QWidget):
 		distance_group_layout = QFormLayout()
 		distance_group.setLayout(distance_group_layout)
 
+		self.move_from = QLineEdit()
+		distance_group_layout.addRow(QLabel("Move from:"), self.move_from)
+
 		self.move_to = QLineEdit()
 		distance_group_layout.addRow(QLabel("Move to:"), self.move_to)
 
@@ -41,12 +40,14 @@ class Settings(QWidget):
 		movement_layout = QFormLayout()
 		movement_group.setLayout(movement_layout)
 
-		self.step_size_selector = QComboBox()
-		self.step_size_selector.addItems(["Full step", "1/2 step", "1/4 step", "1/8 step"])
-		movement_layout.addRow(QLabel("Motor step size:"), self.step_size_selector)
-
 		self.motor_speed = QSlider(Qt.Orientation.Horizontal)
 		distance_group_layout.addRow(QLabel("Motor speed:"), self.motor_speed)
+
+		self.measure_separation = QLineEdit()
+		movement_layout.addRow(QLabel("Measure separation:"), self.measure_separation)
+
+		self.stabilization_time = QLineEdit()
+		movement_layout.addRow(QLabel("Stabilization time:"), self.stabilization_time)
 
 		self.main_layout.addWidget(movement_group)
 
@@ -98,6 +99,7 @@ class Settings(QWidget):
 		
 		try:
 			ser = Serial(self.home_parent.device, 115200)
+			print(command)
 			ser.write(command.encode("utf-8"))
 			ser.close()
 		
@@ -119,28 +121,25 @@ class Settings(QWidget):
 			return
 		
 		try:
-			new_position = str(int(self.move_to.text())) + ','
-			step_size = str(self.step_size_selector.currentIndex()) + ','
-			motor_speed = str(self.motor_speed.value())
+			move_from_pos = str(int(self.move_from.text())) + ','
+			move_to_pos = str(int(self.move_to.text())) + ','
+			motor_speed = str(self.motor_speed.value()) + ','
+			measure_separation = str(int(self.measure_separation.text())) + ','
+			stabilization_time = str(int(self.stabilization_time.text()))
 
 		except ValueError:
 			self.home_parent.statusBar().showMessage("Invalid position")
 			return
 
-		print("execute," + new_position + step_size + motor_speed)
-		self.send_serial_command("execute," + new_position + step_size + motor_speed)
+		self.send_serial_command("execute," + move_from_pos + move_to_pos + motor_speed + measure_separation + stabilization_time)
 
-		self.go_to_start()
 		self.start_data_collection()
 
-	def test_fn(self):
-		self.send_serial_command("TEST,Debug,pan")
-
 	def go_to_start(self):
-		self.send_serial_command("go_to_start")
+		self.send_serial_command("go_to_start,")
 
 	def go_to_end(self):
-		self.send_serial_command("go_to_end")
+		self.send_serial_command("go_to_end,")
 
 	def go_to_distance(self):
 		return
@@ -155,10 +154,19 @@ class Settings(QWidget):
 				
 
 	def stop_data_collection(self):
+		self.send_serial_command("stop,")
+
 		if self.home_parent.plot_settings.callback_id != None:
 
 			def remove_callback():
-				self.home_parent.plot_settings.doc.remove_periodic_callback(self.home_parent.plot_settings.callback_id)
-				self.home_parent.plot_settings.callback_id = None
+				try:
+					self.home_parent.plot_settings.doc.remove_periodic_callback(self.home_parent.plot_settings.callback_id)
+					self.home_parent.plot_settings.callback_id = None
+				
+				except ValueError:
+					return
 
 			self.home_parent.plot_settings.doc.add_next_tick_callback(remove_callback)
+
+	def test_fn(self):
+		self.send_serial_command("test,debug,pan,emparedado,no,atinotesale")

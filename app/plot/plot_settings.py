@@ -64,7 +64,9 @@ class PlotSettings(QWidget):
 
 	def reset_plot(self):
 		self.df = pd.DataFrame(columns=['x', 'y'])
-		
+		self.home_parent.settings.send_serial_command("reset_plot,")
+		self.home_parent.settings.stop_data_collection()
+
 		def clear():
 			self.doc.clear()
 			create_new_plot(self.doc, self.home_parent)
