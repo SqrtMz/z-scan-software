@@ -12,7 +12,7 @@ class BokehPlot:
 
 		source = ColumnDataSource({'x': [], 'y': []})
 
-		p = figure(x_range = (0, 100), y_range=(0, 5000), sizing_mode="stretch_both", x_axis_label="Distance (cm)", y_axis_label="Photodiode Voltage (V)")
+		p = figure(x_range = (0, 10000), y_range=(0, 5000), sizing_mode="stretch_both", x_axis_label="Distance (cm)", y_axis_label="Photodiode Voltage (V)")
 
 		p.scatter(source=source)
 		p.line(source=source, color="red")
@@ -23,6 +23,8 @@ class BokehPlot:
 				ser = Serial(window.device, 115200)
 				
 				data = ser.readline(50).decode("utf-8").strip()
+
+				print(data)
 
 				y, x = data.split(",")
 				ser.close()
