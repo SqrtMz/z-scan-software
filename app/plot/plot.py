@@ -1,6 +1,6 @@
 from serial import Serial
 from serial.serialutil import SerialException
-from bokeh.models import ColumnDataSource, CustomAction, CustomJS
+from bokeh.models import ColumnDataSource
 from bokeh.plotting import figure
 import pandas as pd
 
@@ -34,8 +34,8 @@ class BokehPlot:
 
 			except (SerialException, ValueError):
 				window.statusBar().showMessage("Invalid device, please check the device selected")
-				window.plot_settings.doc.remove_periodic_callback(window.plot_settings.callback_id)
-				window.plot_settings.callback_id = None
+				window.plot_options.doc.remove_periodic_callback(window.plot_options.callback_id)
+				window.plot_options.callback_id = None
 				return
 
 			source.stream({'x': [x], 'y': [y]}, rollover=100)
@@ -45,10 +45,10 @@ class BokehPlot:
 				"y": y
 			}
 
-			window.plot_settings.df = pd.concat([window.plot_settings.df, pd.DataFrame([new_data])], ignore_index=True)
+			window.plot_options.df = pd.concat([window.plot_options.df, pd.DataFrame([new_data])], ignore_index=True)
 
-		window.plot_settings.doc = doc
-		window.plot_settings.update_function = update
-		window.plot_settings.callback_id = None
+		window.plot_options.doc = doc
+		window.plot_options.update_function = update
+		window.plot_options.callback_id = None
 		
 		doc.add_root(p)

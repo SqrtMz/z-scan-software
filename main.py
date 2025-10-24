@@ -1,7 +1,7 @@
 import sys
 from threading import Thread
 from PySide6.QtWidgets import QApplication
-from app.home.home import Home
+from app.windows.home import Home
 from app.plot.plot import create_new_plot
 from bokeh.server.server import Server
 from tornado.ioloop import IOLoop

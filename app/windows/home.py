@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QStatusBar, QMessageBox
 from serial.tools import list_ports
-from app.home.settings import Settings
-from app.plot.plot_settings import PlotSettings
+from app.options.options import Options
+from app.plot.plot_options import PlotOptions
 
 class Home(QMainWindow):
 
@@ -18,10 +18,6 @@ class Home(QMainWindow):
 
         quit_action = file_menu.addAction("Quit")
         quit_action.triggered.connect(self.close)
-
-        edit_menu = menu_bar.addMenu("&Edit")
-
-        settings_action = edit_menu.addAction("Settings")
 
         self.devices_menu = menu_bar.addMenu("&Devices")
         self.devices_menu.aboutToShow.connect(self.reload_devices)
@@ -40,14 +36,14 @@ class Home(QMainWindow):
 
         layout = QHBoxLayout(w)
 
-        self.settings = Settings(self)
-        layout.addWidget(self.settings)
-        self.settings.setMinimumWidth(275)
-        self.settings.setMaximumWidth(300)
+        self.options = Options(self)
+        layout.addWidget(self.options)
+        self.options.setMinimumWidth(275)
+        self.options.setMaximumWidth(300)
 
-        self.plot_settings = PlotSettings(self)
-        layout.addWidget(self.plot_settings)
-        self.plot_settings.setMinimumSize(320, 240)
+        self.plot_options = PlotOptions(self)
+        layout.addWidget(self.plot_options)
+        self.plot_options.setMinimumSize(320, 240)
 
         w.setLayout(layout)
 
@@ -70,4 +66,4 @@ class Home(QMainWindow):
 
     def select_device(self, device):
         self.device = device
-        self.settings.selected_device.setText(f"Selected device: {device}")
+        self.options.selected_device.setText(f"Selected device: {device}")

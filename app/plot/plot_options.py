@@ -4,7 +4,7 @@ from PySide6.QtWebEngineWidgets import QWebEngineView
 import pandas as pd
 from app.plot.plot import create_new_plot
 
-class PlotSettings(QWidget):
+class PlotOptions(QWidget):
 	def __init__(self, home_parent):
 		super().__init__()
 
@@ -64,8 +64,8 @@ class PlotSettings(QWidget):
 
 	def reset_plot(self):
 		self.df = pd.DataFrame(columns=['x', 'y'])
-		self.home_parent.settings.send_serial_command("reset_plot,")
-		self.home_parent.settings.stop_data_collection()
+		self.home_parent.options.send_serial_command("reset_plot,", self.home_parent.device)
+		self.home_parent.options.stop_data_collection()
 
 		def clear():
 			self.doc.clear()
