@@ -13,11 +13,12 @@ window.resize(1280, 720)
 window.show()
 
 def start_bokeh():
-    server = Server({'/': lambda doc: create_new_plot(doc, window)}, io_loop=IOLoop.current(), allow_websocket_origin=["localhost:5006"])
-    server.start()
-    server.io_loop.start()
+	server = Server({'/': lambda doc: create_new_plot(doc, window)}, io_loop=IOLoop.current(), allow_websocket_origin=["localhost:5006"], port=5006)
+	server.start()
+	server.io_loop.start()
 
 if __name__ == "__main__":
 
-    t = Thread(target=start_bokeh, daemon=True).start()
-    sys.exit(app.exec())
+	t = Thread(target=start_bokeh, daemon=True).start()
+
+	sys.exit(app.exec())

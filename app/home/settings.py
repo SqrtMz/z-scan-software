@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QSizePolicy, QGroupBox, QFormLayout, QSlider
+from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QComboBox, QSizePolicy, QGroupBox, QFormLayout, QSlider, QSpinBox, QDoubleSpinBox
 from serial import Serial
 from serial.serialutil import SerialException
 
@@ -12,8 +12,12 @@ class Settings(QWidget):
 
 		self.main_layout = QVBoxLayout(self)
 
-		information_group = QGroupBox("Information")
+		#####################
+		# Information group #
+		#####################
 		information_layout = QFormLayout()
+		information_group = QGroupBox("Information")
+		information_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 		information_group.setLayout(information_layout)
 
 		self.selected_device = QLabel("Select a device")
@@ -24,36 +28,116 @@ class Settings(QWidget):
 
 		self.main_layout.addWidget(information_group)
 
-		distance_group = QGroupBox("Distance options")
-		distance_group_layout = QFormLayout()
-		distance_group.setLayout(distance_group_layout)
-
-		self.move_from = QLineEdit()
-		distance_group_layout.addRow(QLabel("Move from:"), self.move_from)
-
-		self.move_to = QLineEdit()
-		distance_group_layout.addRow(QLabel("Move to:"), self.move_to)
-
-		self.main_layout.addWidget(distance_group)
-
+		##################
+		# Movement group #
+		##################
+		movement_group_layout = QFormLayout()
 		movement_group = QGroupBox("Movement options")
-		movement_layout = QFormLayout()
-		movement_group.setLayout(movement_layout)
+		movement_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+		movement_group.setLayout(movement_group_layout)
+
+		move_from_label = QLabel("Move from:")
+		move_from_label.setFixedSize(70, 15)
+		self.move_from = QDoubleSpinBox()
+		self.move_from.setDecimals(3)
+		self.move_from.setRange(0, 100000)
+		self.move_from.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+		move_from_units = QLabel("cm")
+
+		move_from_container = QHBoxLayout()
+		move_from_container.addWidget(move_from_label)
+		move_from_container.addWidget(self.move_from)
+		move_from_container.addWidget(move_from_units)
+
+		movement_group_layout.addRow(move_from_container)
+
+		move_to_label = QLabel("Move to:")
+		move_to_label.setFixedSize(70, 15)
+		self.move_to = QDoubleSpinBox()
+		self.move_to.setDecimals(3)
+		self.move_to.setRange(0, 100000)
+		self.move_to.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+		move_to_units = QLabel("cm")
+
+		move_to_container = QHBoxLayout()
+		move_to_container.addWidget(move_to_label)
+		move_to_container.addWidget(self.move_to)
+		move_to_container.addWidget(move_to_units)
+
+		movement_group_layout.addRow(move_to_container)
+
+		self.cm_to_steps_label = QLabel("0 Steps", alignment=Qt.AlignmentFlag.AlignCenter)
+		movement_group_layout.addWidget(self.cm_to_steps_label)
+
+		self.move_from.valueChanged.connect(self.cm_to_steps)
+		self.move_to.valueChanged.connect(self.cm_to_steps)
+
+		self.motor_speed_label = QLabel("Motor speed: 1%")
+		movement_group_layout.addRow(self.motor_speed_label)
 
 		self.motor_speed = QSlider(Qt.Orientation.Horizontal)
-		distance_group_layout.addRow(QLabel("Motor speed:"), self.motor_speed)
+		self.motor_speed.valueChanged.connect(self.update_slider_value)
+		movement_group_layout.addRow(self.motor_speed)
 
-		self.measure_separation = QLineEdit()
-		movement_layout.addRow(QLabel("Measure separation:"), self.measure_separation)
+		self.measure_separation = QSpinBox()
+		self.measure_separation.setRange(0, 100000)
+		self.measure_separation.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
-		self.stabilization_time = QLineEdit()
-		movement_layout.addRow(QLabel("Stabilization time:"), self.stabilization_time)
+		measure_separation_container = QHBoxLayout()
+		measure_separation_label = QLabel("Measure separation:")
+		measure_separation_label.setFixedSize(120, 15)
+
+		measure_separation_container.addWidget(measure_separation_label)
+		measure_separation_container.addWidget(self.measure_separation)
+		measure_separation_container.addWidget(QLabel("cm"))
+		movement_group_layout.addRow(measure_separation_container)
+
+		self.stabilization_time = QSpinBox()
+		self.stabilization_time.setRange(0, 100000)
+		self.stabilization_time.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
+		stabilization_time_container = QHBoxLayout()
+		stabilization_time_label = QLabel("Stabilization time:")
+		stabilization_time_label.setFixedSize(120, 15)
+		stabilization_time_container.addWidget(stabilization_time_label)
+		stabilization_time_container.addWidget(self.stabilization_time)
+		stabilization_time_container.addWidget(QLabel("ms"))
+		movement_group_layout.addRow(stabilization_time_container)
+
+		distance_per_rev_label = QLabel("Distance per rev:")
+		distance_per_rev_label.setFixedSize(120, 15)
+		self.distance_per_rev = QDoubleSpinBox()
+		self.distance_per_rev.setDecimals(3)
+		self.distance_per_rev.setRange(0, 100000)
+		self.distance_per_rev.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+		self.distance_per_rev.valueChanged.connect(self.cm_to_steps)
+
+		distance_per_rev_container = QHBoxLayout()
+		distance_per_rev_container.addWidget(distance_per_rev_label)
+		distance_per_rev_container.addWidget(self.distance_per_rev)
+		distance_per_rev_container.addWidget(QLabel("cm"))
+		movement_group_layout.addRow(distance_per_rev_container)
+
+		microstep_label = QLabel("Microstep:")
+		self.microstep = QComboBox()
+		self.microstep.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+		self.microstep.addItems(["1 - 200 pulses/rev", "2 - 400 pulses/rev", "4 - 800 pulses/rev", "8 - 1600 pulses/rev", "16 - 3200 pulses/rev", "32 - 6400 pulses/rev"])
+		self.microstep.currentIndexChanged.connect(self.cm_to_steps)
+
+		microstep_container = QHBoxLayout()
+		microstep_container.addWidget(microstep_label)
+		microstep_container.addWidget(self.microstep)
+		movement_group_layout.addRow(microstep_container)
 
 		self.main_layout.addWidget(movement_group)
 
+		#################
+		# Actions group #
+		#################
 		actions_group = QGroupBox("Actions")
 		actions_layout = QVBoxLayout()
 		actions_group.setLayout(actions_layout)
+		actions_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
 		actions_row1 = QHBoxLayout()
 
@@ -81,10 +165,10 @@ class Settings(QWidget):
 		self.stop.clicked.connect(self.stop_data_collection)
 		actions_row2.addWidget(self.stop)
 
-		self.TEST = QPushButton("TEST")
-		self.TEST.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-		self.TEST.clicked.connect(self.test_fn)
-		actions_row2.addWidget(self.TEST)
+		self.restart = QPushButton("Restart")
+		self.restart.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+		self.restart.clicked.connect(self.stop_and_restart)
+		actions_row2.addWidget(self.restart)
 
 		actions_layout.addLayout(actions_row2)
 
@@ -92,7 +176,6 @@ class Settings(QWidget):
 
 
 	def send_serial_command(self, command: str):
-
 		if self.home_parent.device == None:
 			self.home_parent.statusBar().showMessage("No device selected")
 			return
@@ -113,14 +196,6 @@ class Settings(QWidget):
 			return
 		
 		try:
-			ser = Serial(self.home_parent.device, 115200)
-			ser.close()
-
-		except SerialException:
-			self.home_parent.statusBar().showMessage("Invalid device, please check the device selected")
-			return
-		
-		try:
 			move_from_pos = str(int(self.move_from.text())) + ','
 			move_to_pos = str(int(self.move_to.text())) + ','
 			motor_speed = str(self.motor_speed.value()) + ','
@@ -132,17 +207,8 @@ class Settings(QWidget):
 			return
 
 		self.send_serial_command("execute," + move_from_pos + move_to_pos + motor_speed + measure_separation + stabilization_time)
-
+		self.home_parent.plot_settings.reset_plot()
 		self.start_data_collection()
-
-	def go_to_start(self):
-		self.send_serial_command("go_to_start,")
-
-	def go_to_end(self):
-		self.send_serial_command("go_to_end,")
-
-	def go_to_distance(self):
-		return
 
 	def start_data_collection(self):
 		if self.home_parent.plot_settings.callback_id == None:
@@ -151,7 +217,6 @@ class Settings(QWidget):
 				self.home_parent.plot_settings.callback_id = self.home_parent.plot_settings.doc.add_periodic_callback(self.home_parent.plot_settings.update_function, 1)
 
 			self.home_parent.plot_settings.doc.add_next_tick_callback(add_callback)
-				
 
 	def stop_data_collection(self):
 		self.send_serial_command("stop,")
@@ -168,5 +233,29 @@ class Settings(QWidget):
 
 			self.home_parent.plot_settings.doc.add_next_tick_callback(remove_callback)
 
-	def test_fn(self):
-		self.send_serial_command("test,debug,pan,emparedado,no,atinotesale")
+	def cm_to_steps(self):
+		steps_per_rev = [200, 400, 800, 1600, 3200, 6400]
+		distance_per_step = self.distance_per_rev.value() / steps_per_rev[self.microstep.currentIndex()]
+
+		try:
+			distance = self.move_to.value() - self.move_from.value()
+			steps = int(round(distance / distance_per_step))
+
+		except ZeroDivisionError:
+			steps = 0
+
+		self.cm_to_steps_label.setText(f"{steps} Steps")
+
+	def update_slider_value(self):
+		value = self.motor_speed.value()
+		self.motor_speed_label.setText(f"Motor speed: {value + 1}%")
+
+	def go_to_start(self):
+		self.send_serial_command("go_to_start,")
+
+	def go_to_end(self):
+		self.send_serial_command("go_to_end,")
+
+	def stop_and_restart(self):
+		self.stop_data_collection()
+		self.go_to_start()

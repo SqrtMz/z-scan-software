@@ -23,7 +23,7 @@ class PlotSettings(QWidget):
 		self.main_layout.addWidget(self.plot_group)
 
 		self.plot = QWebEngineView()
-		self.plot.setUrl("http://localhost:5006/")
+		self.plot.setUrl(f"http://localhost:5006/")
 		plot_layout.addWidget(self.plot)
 		profile = QWebEngineProfile.defaultProfile()
 		profile.downloadRequested.connect(self.capture_plot)
@@ -57,7 +57,7 @@ class PlotSettings(QWidget):
 
 	def save_plot_data(self):
 
-		path, _ = QFileDialog.getSaveFileName(self, "Save File As", "data.csv", "CSV Files (*.csv);;All Files (*)")
+		path, _ = QFileDialog.getSaveFileName(self, "Save File As", "data.csv", "CSV Files (*.csv);; TXT Files (*.txt);; DAT Files (*.dat);; All Files (*)")
 
 		if path:
 			self.df.to_csv(path, index=False)

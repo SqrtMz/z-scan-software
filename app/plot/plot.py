@@ -1,6 +1,6 @@
 from serial import Serial
 from serial.serialutil import SerialException
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, CustomAction, CustomJS
 from bokeh.plotting import figure
 import pandas as pd
 
@@ -12,13 +12,20 @@ class BokehPlot:
 
 		source = ColumnDataSource({'x': [], 'y': []})
 
+<<<<<<< Updated upstream
 		p = figure(x_range = (0, 10000), y_range=(0, 5000), sizing_mode="stretch_both", x_axis_label="Distance (cm)", y_axis_label="Photodiode Voltage (V)")
+=======
+		p = figure(x_range = (0, 100), y_range=(0, 5000), sizing_mode="stretch_both", x_axis_label="Distance (cm)", y_axis_label="Photodiode Voltage (V)", tools=["pan", "wheel_zoom", "box_zoom", "reset", "save"])
+		p.toolbar.logo = None
+
+		p.xaxis.axis_label_text_font_size = "12pt"
+		p.yaxis.axis_label_text_font_size = "12pt"
+>>>>>>> Stashed changes
 
 		p.scatter(source=source)
 		p.line(source=source, color="red")
 
 		def update():
-
 			try:
 				ser = Serial(window.device, 115200)
 				

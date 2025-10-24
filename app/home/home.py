@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QStatusBar
+from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QStatusBar, QMessageBox
 from serial.tools import list_ports
 from app.home.settings import Settings
 from app.plot.plot_settings import PlotSettings
@@ -10,18 +10,26 @@ class Home(QMainWindow):
 
         self.device = None
 
-        self.setWindowTitle("Home")
+        self.setWindowTitle("Z-Scan Controller")
 
         menu_bar = self.menuBar()
 
         file_menu = menu_bar.addMenu("&File")
 
         quit_action = file_menu.addAction("Quit")
-        quit_action.setStatusTip("Close this program")
         quit_action.triggered.connect(self.close)
+
+        edit_menu = menu_bar.addMenu("&Edit")
+
+        settings_action = edit_menu.addAction("Settings")
 
         self.devices_menu = menu_bar.addMenu("&Devices")
         self.devices_menu.aboutToShow.connect(self.reload_devices)
+
+        help_menu = menu_bar.addMenu("&Help")
+
+        about_action = help_menu.addAction("About")
+        about_action.triggered.connect(lambda: QMessageBox.about(self, "About Z-Scan Controller", "Z-Scan Controller\n\nBy Carlos A. Vesga D.\n\nIn association with the GEOEL Group - Universidad del Atlántico\n\nhttps://github.com/SqrtMz/z-scan-software"))
 
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
