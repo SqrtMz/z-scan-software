@@ -9,7 +9,9 @@ class Options(QWidget):
 		super().__init__()
 
 		self.home_parent = home_parent
+		self.plot = None
 		self.state = "Standby"
+		self.distance_per_step = 0
 
 		self.main_layout = QVBoxLayout(self)
 
@@ -37,14 +39,14 @@ class Options(QWidget):
 		movement_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 		movement_group.setLayout(movement_group_layout)
 
-		self.move_from = FormCellUnits("Move from:", QDoubleSpinBox(), "cm", label_x_size=70, label_y_size=15, update_value_function=self.cm_to_steps)
+		self.move_from = FormCellUnits("Move from:", QDoubleSpinBox(), "cm", label_x_size=70, label_y_size=15, update_value_function=self.update_movement_options)
 		movement_group_layout.addRow(self.move_from)
 
-		self.move_to = FormCellUnits("Move to:", QDoubleSpinBox(), "cm", label_x_size=70, label_y_size=15, update_value_function=self.cm_to_steps)
+		self.move_to = FormCellUnits("Move to:", QDoubleSpinBox(), "cm", label_x_size=70, label_y_size=15, update_value_function=self.update_movement_options)
 		movement_group_layout.addRow(self.move_to)
 
-		self.cm_to_steps_label = QLabel("0 Steps", alignment=Qt.AlignmentFlag.AlignCenter)
-		movement_group_layout.addWidget(self.cm_to_steps_label)
+		self.update_movement_options_label = QLabel("0 Steps", alignment=Qt.AlignmentFlag.AlignCenter)
+		movement_group_layout.addWidget(self.update_movement_options_label)
 
 		self.motor_speed_label = QLabel("Motor speed: 1%")
 		movement_group_layout.addRow(self.motor_speed_label)
@@ -53,19 +55,19 @@ class Options(QWidget):
 		self.motor_speed.valueChanged.connect(self.update_slider_value)
 		movement_group_layout.addRow(self.motor_speed)
 
-		self.measure_separation = FormCellUnits("Measure separation:", QSpinBox(), "cm")
+		self.measure_separation = FormCellUnits("Measure separation:", QDoubleSpinBox(), "cm")
 		movement_group_layout.addRow(self.measure_separation)
 
 		self.stabilization_time = FormCellUnits("Stabilization time:", QSpinBox(), "ms")
 		movement_group_layout.addRow(self.stabilization_time)
 
-		self.distance_per_rev = FormCellUnits("Distance per rev:", QDoubleSpinBox(), "cm", update_value_function=self.cm_to_steps)
+		self.distance_per_rev = FormCellUnits("Distance per rev:", QDoubleSpinBox(), "cm", update_value_function=self.update_movement_options)
 		movement_group_layout.addRow(self.distance_per_rev)
 
 		self.microstep = QComboBox()
 		self.microstep.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 		self.microstep.addItems(["1 - 200 pulses/rev", "2 - 400 pulses/rev", "4 - 800 pulses/rev", "8 - 1600 pulses/rev", "16 - 3200 pulses/rev", "32 - 6400 pulses/rev"])
-		self.microstep.currentIndexChanged.connect(self.cm_to_steps)
+		self.microstep.currentIndexChanged.connect(self.update_movement_options)
 		movement_group_layout.addRow(QLabel("Microstep:"), self.microstep)
 
 		self.main_layout.addWidget(movement_group)
@@ -130,10 +132,10 @@ class Options(QWidget):
 
 	def start_execution(self):
 		try:
-			move_from_pos = str(int(self.move_from.value())) + ','
-			move_to_pos = str(int(self.move_to.value())) + ','
-			motor_speed = str(self.motor_speed.value()) + ','
-			measure_separation = str(int(self.measure_separation.value())) + ','
+			move_from_pos = str(int(self.move_from.value() / self.distance_per_step)) + ','
+			move_to_pos = str(int(self.move_to.value() / self.distance_per_step)) + ','
+			motor_speed = str(self.motor_speed.value() + 1) + ','
+			measure_separation = str(int(self.measure_separation.value() / self.distance_per_step)) + ','
 			stabilization_time = str(int(self.stabilization_time.value()))
 
 		except ValueError:
@@ -166,9 +168,11 @@ class Options(QWidget):
 
 			self.home_parent.plot_options.doc.add_next_tick_callback(remove_callback)
 
-	def cm_to_steps(self):
+	def update_movement_options(self):
 		steps_per_rev = [200, 400, 800, 1600, 3200, 6400]
+
 		distance_per_step = self.distance_per_rev.value() / steps_per_rev[self.microstep.currentIndex()]
+		self.distance_per_step = distance_per_step
 
 		try:
 			distance = self.move_to.value() - self.move_from.value()
@@ -177,7 +181,16 @@ class Options(QWidget):
 		except ZeroDivisionError:
 			steps = 0
 
-		self.cm_to_steps_label.setText(f"{steps} Steps")
+		self.update_movement_options_label.setText(f"{steps} Steps")
+
+		self.move_from.input_widget.setRange(0, self.move_to.value())
+		self.move_to.input_widget.setRange(self.move_from.value(), 100000)
+		
+		def update():
+			self.plot.x_range.start = int(round(self.move_from.value() - 2))
+			self.plot.x_range.end = int(round(self.move_to.value() + 2))
+
+		self.home_parent.plot_options.doc.add_next_tick_callback(update)
 
 	def update_slider_value(self):
 		value = self.motor_speed.value()

@@ -3,22 +3,22 @@ from serial.serialutil import SerialException
 from bokeh.models import ColumnDataSource
 from bokeh.plotting import figure
 import pandas as pd
+from app.util.distance_conversions import steps_to_cm
 
-def create_new_plot(doc, window):
-	r = BokehPlot(doc, window)
+def create_new_plot(doc, window, min_x_range=0, max_x_range=30):
+	r = BokehPlot(doc, window, min_x_range, max_x_range)
 
 class BokehPlot:
-	def __init__(self, doc, window):
+	def __init__(self, doc, window, min_x_range=0, max_x_range=30):
 
 		source = ColumnDataSource({'x': [], 'y': []})
 
-		p = figure(x_range = (0, 100), y_range=(0, 5000), sizing_mode="stretch_both", x_axis_label="Distance (cm)", y_axis_label="Photodiode Voltage (V)", tools=["pan", "wheel_zoom", "box_zoom", "reset", "save"])
+		p = figure(x_range = (min_x_range - 2 , max_x_range + 2), y_range=(0, 5000), sizing_mode="stretch_both", x_axis_label="Distance (cm)", y_axis_label="Photodiode Voltage (V)", tools=["pan", "wheel_zoom", "box_zoom", "reset", "save"])
 		p.toolbar.logo = None
 
 		p.xaxis.axis_label_text_font_size = "12pt"
 		p.yaxis.axis_label_text_font_size = "12pt"
 
-		p.scatter(source=source)
 		p.line(source=source, color="red")
 
 		def update():
@@ -38,7 +38,8 @@ class BokehPlot:
 				window.plot_options.callback_id = None
 				return
 
-			source.stream({'x': [x], 'y': [y]}, rollover=100)
+			x = steps_to_cm(int(x), window.options.distance_per_step)
+			source.stream({'x': [x], 'y': [y]}, rollover=0)
 
 			new_data = {
 				"x": x,
@@ -50,5 +51,6 @@ class BokehPlot:
 		window.plot_options.doc = doc
 		window.plot_options.update_function = update
 		window.plot_options.callback_id = None
+		window.options.plot = p
 		
 		doc.add_root(p)

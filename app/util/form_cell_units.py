@@ -11,19 +11,19 @@ class FormCellUnits(QWidget):
 		self.label.setFixedSize(label_x_size, label_y_size)
 
 		self.input_widget = input_widget
-		input_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-		input_widget.valueChanged.connect(update_value_function)
+		self.input_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+		self.input_widget.valueChanged.connect(update_value_function)
 
-		if hasattr(input_widget, "setDecimals"):
-			input_widget.setDecimals(decimals)
+		if hasattr(self.input_widget, "setDecimals"):
+			self.input_widget.setDecimals(decimals)
 
-		if hasattr(input_widget, "setRange"):
-			input_widget.setRange(min_range, max_range)
+		if hasattr(self.input_widget, "setRange"):
+			self.input_widget.setRange(min_range, max_range)
 
 		self.units = QLabel(units)
 
 		self.main_layout.addWidget(self.label)
-		self.main_layout.addWidget(input_widget)
+		self.main_layout.addWidget(self.input_widget)
 		self.main_layout.addWidget(self.units)
 
 	def value(self):

@@ -64,11 +64,10 @@ class PlotOptions(QWidget):
 
 	def reset_plot(self):
 		self.df = pd.DataFrame(columns=['x', 'y'])
-		self.home_parent.options.send_serial_command("reset_plot,", self.home_parent.device)
 		self.home_parent.options.stop_data_collection()
 
 		def clear():
 			self.doc.clear()
-			create_new_plot(self.doc, self.home_parent)
-		
+			create_new_plot(self.doc, self.home_parent, self.home_parent.options.move_from.input_widget.value(), self.home_parent.options.move_to.input_widget.value())
+
 		self.doc.add_next_tick_callback(clear)
