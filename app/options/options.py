@@ -42,7 +42,7 @@ class Options(QWidget):
 		self.move_from = FormCellUnits("Move from:", QDoubleSpinBox(), "cm", label_x_size=70, label_y_size=15, update_value_function=self.update_movement_options)
 		movement_group_layout.addRow(self.move_from)
 
-		self.move_to = FormCellUnits("Move to:", QDoubleSpinBox(), "cm", label_x_size=70, label_y_size=15, update_value_function=self.update_movement_options)
+		self.move_to = FormCellUnits("Move to:", QDoubleSpinBox(), "cm", input_widget_value=30, label_x_size=70, label_y_size=15, update_value_function=self.update_movement_options)
 		movement_group_layout.addRow(self.move_to)
 
 		self.update_movement_options_label = QLabel("0 Steps", alignment=Qt.AlignmentFlag.AlignCenter)

@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QSizePolicy
 
 class FormCellUnits(QWidget):
-	def __init__(self, label, input_widget, units, label_x_size=120, label_y_size=15, decimals=3, min_range=0, max_range=100000, update_value_function=lambda: None):
+	def __init__(self, label, input_widget, units, input_widget_value=0, label_x_size=120, label_y_size=15, decimals=3, min_range=0, max_range=100000, update_value_function=lambda: None):
 		super().__init__()
 
 		self.main_layout = QHBoxLayout(self)
@@ -11,6 +11,7 @@ class FormCellUnits(QWidget):
 		self.label.setFixedSize(label_x_size, label_y_size)
 
 		self.input_widget = input_widget
+		self.input_widget.setValue(input_widget_value)
 		self.input_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 		self.input_widget.valueChanged.connect(update_value_function)
 
