@@ -39,6 +39,8 @@ class BokehPlot:
 				return
 
 			x = steps_to_cm(int(x), window.options.distance_per_step)
+			x = round(x, 3)
+			
 			source.stream({'x': [x], 'y': [y]}, rollover=0)
 
 			new_data = {

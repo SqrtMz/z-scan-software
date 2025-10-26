@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QL
 from serial import Serial
 from serial.serialutil import SerialException
 from app.util.form_cell_units import FormCellUnits
+from app.util.distance_conversions import cm_to_steps
 
 class Options(QWidget):
 	def __init__(self, home_parent):
@@ -61,7 +62,7 @@ class Options(QWidget):
 		self.stabilization_time = FormCellUnits("Stabilization time:", QSpinBox(), "ms")
 		movement_group_layout.addRow(self.stabilization_time)
 
-		self.distance_per_rev = FormCellUnits("Distance per rev:", QDoubleSpinBox(), "cm", update_value_function=self.update_movement_options)
+		self.distance_per_rev = FormCellUnits("Distance per rev:", QDoubleSpinBox(), "cm", input_widget_value=0.5, update_value_function=self.update_movement_options)
 		movement_group_layout.addRow(self.distance_per_rev)
 
 		self.microstep = QComboBox()
@@ -132,17 +133,17 @@ class Options(QWidget):
 
 	def start_execution(self):
 		try:
-			move_from_pos = str(int(self.move_from.value() / self.distance_per_step)) + ','
-			move_to_pos = str(int(self.move_to.value() / self.distance_per_step)) + ','
-			motor_speed = str(self.motor_speed.value() + 1) + ','
-			measure_separation = str(int(self.measure_separation.value() / self.distance_per_step)) + ','
+			move_from_pos = str(cm_to_steps(self.move_from.value(), self.distance_per_step))
+			move_to_pos = str(cm_to_steps(self.move_to.value(), self.distance_per_step))
+			motor_speed = str(self.motor_speed.value() + 1)
+			measure_separation = str(cm_to_steps(self.measure_separation.value(), self.distance_per_step))
 			stabilization_time = str(int(self.stabilization_time.value()))
 
 		except ValueError:
 			self.home_parent.statusBar().showMessage("Invalid position")
 			return
 
-		self.send_serial_command("execute," + move_from_pos + move_to_pos + motor_speed + measure_separation + stabilization_time, self.home_parent.device)
+		self.send_serial_command(f"execute,{move_from_pos},{move_to_pos},{motor_speed},{measure_separation},{stabilization_time}", self.home_parent.device)
 		self.start_data_collection()
 
 	def start_data_collection(self):
@@ -174,23 +175,19 @@ class Options(QWidget):
 		distance_per_step = self.distance_per_rev.value() / steps_per_rev[self.microstep.currentIndex()]
 		self.distance_per_step = distance_per_step
 
-		try:
-			distance = self.move_to.value() - self.move_from.value()
-			steps = int(round(distance / distance_per_step))
-
-		except ZeroDivisionError:
-			steps = 0
+		distance = self.move_to.value() - self.move_from.value()
+		steps = cm_to_steps(distance, self.distance_per_step)
 
 		self.update_movement_options_label.setText(f"{steps} Steps")
 
 		self.move_from.input_widget.setRange(0, self.move_to.value())
 		self.move_to.input_widget.setRange(self.move_from.value(), 100000)
 		
-		def update():
+		def update_plot_ranges():
 			self.plot.x_range.start = int(round(self.move_from.value() - 2))
 			self.plot.x_range.end = int(round(self.move_to.value() + 2))
 
-		self.home_parent.plot_options.doc.add_next_tick_callback(update)
+		self.home_parent.plot_options.doc.add_next_tick_callback(update_plot_ranges)
 
 	def update_slider_value(self):
 		value = self.motor_speed.value()
