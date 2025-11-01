@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QComboBox, QSizePolicy, QGroupBox, QFormLayout, QSlider, QSpinBox, QDoubleSpinBox
+from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QComboBox, QSizePolicy, QGroupBox, QFormLayout, QSlider, QSpinBox, QDoubleSpinBox, QCheckBox
 from serial import Serial
 from serial.serialutil import SerialException
 from app.util.form_cell_units import FormCellUnits
@@ -46,11 +46,18 @@ class Options(QWidget):
 		self.move_to = FormCellUnits("Move to:", QDoubleSpinBox(), "cm", input_widget_value=30, label_x_size=70, label_y_size=15, update_value_function=self.update_movement_options)
 		movement_group_layout.addRow(self.move_to)
 
-		self.update_movement_options_label = QLabel("0 Steps", alignment=Qt.AlignmentFlag.AlignCenter)
-		movement_group_layout.addWidget(self.update_movement_options_label)
+		self.number_of_steps = QLabel("0 Steps", alignment=Qt.AlignmentFlag.AlignCenter)
+		movement_group_layout.addRow(self.number_of_steps)
 
 		self.motor_speed_label = QLabel("Motor speed: 1%")
-		movement_group_layout.addRow(self.motor_speed_label)
+		self.motor_speed_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+		is_accelerated_label = QLabel("Acceleration:")
+		self.is_accelerated = QCheckBox()
+		motor_speed_layout = QHBoxLayout()
+		motor_speed_layout.addWidget(self.motor_speed_label)
+		motor_speed_layout.addWidget(is_accelerated_label)
+		motor_speed_layout.addWidget(self.is_accelerated)
+		movement_group_layout.addRow(motor_speed_layout)
 
 		self.motor_speed = QSlider(Qt.Orientation.Horizontal)
 		self.motor_speed.valueChanged.connect(self.update_slider_value)
@@ -138,12 +145,13 @@ class Options(QWidget):
 			motor_speed = str(self.motor_speed.value() + 1)
 			measure_separation = str(cm_to_steps(self.measure_separation.value(), self.distance_per_step))
 			stabilization_time = str(int(self.stabilization_time.value()))
+			is_accelerated = '1' if self.is_accelerated.isChecked() else '0'
 
 		except ValueError:
 			self.home_parent.statusBar().showMessage("Invalid position")
 			return
 
-		self.send_serial_command(f"execute,{move_from_pos},{move_to_pos},{motor_speed},{measure_separation},{stabilization_time}", self.home_parent.device)
+		self.send_serial_command(f"execute,{move_from_pos},{move_to_pos},{motor_speed},{measure_separation},{stabilization_time},{is_accelerated}", self.home_parent.device)
 		self.start_data_collection()
 
 	def start_data_collection(self):
@@ -178,7 +186,7 @@ class Options(QWidget):
 		distance = self.move_to.value() - self.move_from.value()
 		steps = cm_to_steps(distance, self.distance_per_step)
 
-		self.update_movement_options_label.setText(f"{steps} Steps")
+		self.number_of_steps.setText(f"{steps} Steps")
 
 		self.move_from.input_widget.setRange(0, self.move_to.value())
 		self.move_to.input_widget.setRange(self.move_from.value(), 100000)
