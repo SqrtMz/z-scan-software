@@ -36,6 +36,7 @@ class BokehPlot:
 				window.statusBar().showMessage("Invalid device, please check the device selected")
 				window.plot_options.doc.remove_periodic_callback(window.plot_options.callback_id)
 				window.plot_options.callback_id = None
+				print("Motor speed is too high for reliable data reading")
 				return
 
 			x = steps_to_cm(int(x), window.options.distance_per_step)
