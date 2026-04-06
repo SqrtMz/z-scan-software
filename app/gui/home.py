@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QStatusBar, QMessageBox
 from serial.tools import list_ports
-from app.options.options import Options
-from app.plot.plot_options import PlotOptions
+from app.gui.options import Options
+from app.gui.plot_options import PlotOptions
 
 class Home(QMainWindow):
 
@@ -38,8 +38,7 @@ class Home(QMainWindow):
 
         self.options = Options(self)
         layout.addWidget(self.options)
-        self.options.setMinimumWidth(275)
-        self.options.setMaximumWidth(300)
+        self.options.setFixedWidth(400)
 
         self.plot_options = PlotOptions(self)
         layout.addWidget(self.plot_options)

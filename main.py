@@ -1,7 +1,8 @@
 import sys
+from time import sleep
 from threading import Thread
 from PySide6.QtWidgets import QApplication
-from app.windows.home import Home
+from app.gui.home import Home
 from app.plot.plot import create_new_plot
 from bokeh.server.server import Server
 from tornado.ioloop import IOLoop
@@ -21,4 +22,5 @@ if __name__ == "__main__":
 
 	t = Thread(target=start_bokeh, daemon=True).start()
 
+	sleep(1)
 	sys.exit(app.exec())

@@ -2,7 +2,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QComboBox, QSizePolicy, QGroupBox, QFormLayout, QSlider, QSpinBox, QDoubleSpinBox, QCheckBox
 from serial import Serial
 from serial.serialutil import SerialException
-from app.util.form_cell_units import FormCellUnits
+from app.gui.form_cell_units import FormCellUnits
+from app.gui.calculation import Calculation
 from app.util.distance_conversions import cm_to_steps
 
 class Options(QWidget):
@@ -40,10 +41,10 @@ class Options(QWidget):
 		movement_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 		movement_group.setLayout(movement_group_layout)
 
-		self.move_from = FormCellUnits("Move from:", QDoubleSpinBox(), "cm", label_x_size=70, label_y_size=15, update_value_function=self.update_movement_options)
+		self.move_from = FormCellUnits("Move from:", QDoubleSpinBox(), "cm", update_value_function=self.update_movement_options)
 		movement_group_layout.addRow(self.move_from)
 
-		self.move_to = FormCellUnits("Move to:", QDoubleSpinBox(), "cm", input_widget_value=30, label_x_size=70, label_y_size=15, update_value_function=self.update_movement_options)
+		self.move_to = FormCellUnits("Move to:", QDoubleSpinBox(), "cm", input_widget_value=30, update_value_function=self.update_movement_options)
 		movement_group_layout.addRow(self.move_to)
 
 		self.number_of_steps = QLabel("0 Steps", alignment=Qt.AlignmentFlag.AlignCenter)
@@ -69,16 +70,22 @@ class Options(QWidget):
 		self.stabilization_time = FormCellUnits("Stabilization time:", QSpinBox(), "ms")
 		movement_group_layout.addRow(self.stabilization_time)
 
-		self.distance_per_rev = FormCellUnits("Distance per rev:", QDoubleSpinBox(), "cm", input_widget_value=0.5, update_value_function=self.update_movement_options)
+		self.distance_per_rev = FormCellUnits("Distance per revolution:", QDoubleSpinBox(), "cm", input_widget_value=0.5, update_value_function=self.update_movement_options)
 		movement_group_layout.addRow(self.distance_per_rev)
 
 		self.microstep = QComboBox()
 		self.microstep.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-		self.microstep.addItems(["1 - 200 pulses/rev", "2 - 400 pulses/rev", "4 - 800 pulses/rev", "8 - 1600 pulses/rev", "16 - 3200 pulses/rev", "32 - 6400 pulses/rev"])
+		self.microstep.addItems(["1 - 200 pulses/revolution", "2 - 400 pulses/revolution", "4 - 800 pulses/revolution", "8 - 1600 pulses/revolution", "16 - 3200 pulses/revolution", "32 - 6400 pulses/revolution"])
 		self.microstep.currentIndexChanged.connect(self.update_movement_options)
 		movement_group_layout.addRow(QLabel("Microstep:"), self.microstep)
 
 		self.main_layout.addWidget(movement_group)
+
+		######################
+		# Calculations group #
+		######################
+		self.calculations = Calculation()
+		self.main_layout.addWidget(self.calculations)
 
 		#################
 		# Actions group #
