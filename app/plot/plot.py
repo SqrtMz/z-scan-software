@@ -13,7 +13,7 @@ class BokehPlot:
 
 		source = ColumnDataSource({'x': [], 'y': []})
 
-		p = figure(x_range = (min_x_range - 2 , max_x_range + 2), y_range=(0, 5000), sizing_mode="stretch_both", x_axis_label="Distance (cm)", y_axis_label="Photodiode Voltage (V)", tools=["pan", "wheel_zoom", "box_zoom", "reset", "save"])
+		p = figure(x_range = (min_x_range - 2 , max_x_range + 2), y_range=(-33000, 33000), sizing_mode="stretch_both", x_axis_label="Distance (cm)", y_axis_label="Photodiode Voltage (V)", tools=["pan", "wheel_zoom", "box_zoom", "reset", "save"])
 		p.toolbar.logo = None
 
 		p.xaxis.axis_label_text_font_size = "12pt"
@@ -27,16 +27,16 @@ class BokehPlot:
 				
 				data = ser.readline(50).decode("utf-8").strip()
 
-				print(data)
+				print(f"incoming: {data}")
 
 				y, x = data.split(",")
 				ser.close()
 
-			except (SerialException, ValueError):
+			except (SerialException, ValueError) as e:
 				window.statusBar().showMessage("Invalid device, please check the device selected")
 				window.plot_options.doc.remove_periodic_callback(window.plot_options.callback_id)
 				window.plot_options.callback_id = None
-				print("Motor speed is too high for reliable data reading")
+				print("Motor speed is too high for reliable data reading " + str(e))
 				return
 
 			x = steps_to_cm(int(x), window.options.distance_per_step)
