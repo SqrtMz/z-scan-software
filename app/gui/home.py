@@ -46,7 +46,6 @@ class Home(QMainWindow):
 
         w.setLayout(layout)
 
-
     def reload_devices(self):
 
         available_devices = [tuple(p)[0] for p in list(list_ports.comports())]

@@ -52,11 +52,9 @@ class Options(QWidget):
 
 		self.motor_speed_label = QLabel("Motor speed: 1%")
 		self.motor_speed_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-		is_accelerated_label = QLabel("Acceleration:")
-		self.is_accelerated = QCheckBox()
+		self.is_accelerated = QCheckBox("Acceleration")
 		motor_speed_layout = QHBoxLayout()
 		motor_speed_layout.addWidget(self.motor_speed_label)
-		motor_speed_layout.addWidget(is_accelerated_label)
 		motor_speed_layout.addWidget(self.is_accelerated)
 		movement_group_layout.addRow(motor_speed_layout)
 
@@ -64,7 +62,7 @@ class Options(QWidget):
 		self.motor_speed.valueChanged.connect(self.update_slider_value)
 		movement_group_layout.addRow(self.motor_speed)
 
-		self.measure_separation = FormCellUnits("Measure separation:", QDoubleSpinBox(), "cm")
+		self.measure_separation = FormCellUnits("Measure separation:", QDoubleSpinBox(), "cm", input_widget_value=0.010)
 		movement_group_layout.addRow(self.measure_separation)
 
 		self.stabilization_time = FormCellUnits("Stabilization time:", QSpinBox(), "ms")
@@ -78,6 +76,12 @@ class Options(QWidget):
 		self.microstep.addItems(["1 - 200 pulses/revolution", "2 - 400 pulses/revolution", "4 - 800 pulses/revolution", "8 - 1600 pulses/revolution", "16 - 3200 pulses/revolution", "32 - 6400 pulses/revolution"])
 		self.microstep.currentIndexChanged.connect(self.update_movement_options)
 		movement_group_layout.addRow(QLabel("Microstep:"), self.microstep)
+
+		self.adc_gain = QComboBox()
+		self.adc_gain.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+		self.adc_gain.addItems(["Gain TwoThirds - ±6.144V", "Gain One - ±4.096V", "Gain Two - ±2.048V", "Gain Four - ±1.024V", "Gain Eight - ±0.512V", "Gain Sixteen - ±0.256V"])
+		self.adc_gain.currentIndexChanged.connect(self.update_movement_options)
+		movement_group_layout.addRow(QLabel("ADC gain:"), self.adc_gain)
 
 		self.main_layout.addWidget(movement_group)
 
@@ -136,7 +140,7 @@ class Options(QWidget):
 			return
 		
 		try:
-			ser = Serial(device, 115200)
+			ser = Serial(device, 115200, timeout=1)
 			print(command)
 			ser.write(command.encode("utf-8"))
 			ser.close()
@@ -153,12 +157,13 @@ class Options(QWidget):
 			measure_separation = str(cm_to_steps(self.measure_separation.value(), self.distance_per_step))
 			stabilization_time = str(int(self.stabilization_time.value()))
 			is_accelerated = '1' if self.is_accelerated.isChecked() else '0'
+			adc_gain = str(self.adc_gain.currentIndex())
 
 		except ValueError:
 			self.home_parent.statusBar().showMessage("Invalid position")
 			return
 
-		self.send_serial_command(f"execute,{move_from_pos},{move_to_pos},{motor_speed},{measure_separation},{stabilization_time},{is_accelerated}", self.home_parent.device)
+		self.send_serial_command(f"execute,{move_from_pos},{move_to_pos},{motor_speed},{measure_separation},{stabilization_time},{is_accelerated},{adc_gain}", self.home_parent.device)
 		self.start_data_collection()
 
 	def start_data_collection(self):

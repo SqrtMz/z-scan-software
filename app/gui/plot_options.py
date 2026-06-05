@@ -1,4 +1,5 @@
-from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QSizePolicy, QGroupBox, QFileDialog
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QSizePolicy, QGroupBox, QFileDialog, QCheckBox
 from PySide6.QtWebEngineCore import QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
 import pandas as pd
@@ -12,8 +13,8 @@ class PlotOptions(QWidget):
 		self.doc = None
 		self.update_function = None
 		self.callback_id = None
-		
-		self.df = pd.DataFrame(columns=['x', 'y'])
+
+		self.plotted_data = []
 
 		self.main_layout = QHBoxLayout(self)
 		
@@ -29,8 +30,19 @@ class PlotOptions(QWidget):
 		profile.downloadRequested.connect(self.capture_plot)
 
 		plot_actions_layout = QVBoxLayout()
-
 		plot_actions_row1 = QHBoxLayout()
+
+		self.sensor1 = QCheckBox("Sensor 1")
+		self.sensor1.setChecked(True)
+		self.sensor1.setStyleSheet("color: #FF0000; font-weight: bold")
+		plot_actions_row1.addWidget(self.sensor1)
+
+		self.sensor2 = QCheckBox("Sensor 2")
+		self.sensor2.setChecked(True)
+		self.sensor2.setStyleSheet("color: #0000FF; font-weight: bold")
+		plot_actions_row1.addWidget(self.sensor2)
+
+		plot_actions_row1.addStretch()
 
 		self.save_plot_data_button = QPushButton("Save plot data")
 		self.save_plot_data_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
@@ -56,14 +68,15 @@ class PlotOptions(QWidget):
 			download.accept()
 
 	def save_plot_data(self):
+		df = pd.DataFrame(self.plotted_data)
 
 		path, _ = QFileDialog.getSaveFileName(self, "Save File As", "data.csv", "CSV Files (*.csv);; TXT Files (*.txt);; DAT Files (*.dat);; All Files (*)")
 
 		if path:
-			self.df.to_csv(path, index=False)
+			df.to_csv(path, index=False)
 
 	def reset_plot(self):
-		self.df = pd.DataFrame(columns=['x', 'y'])
+		self.plotted_data = []
 		self.home_parent.options.stop_data_collection()
 
 		def clear():

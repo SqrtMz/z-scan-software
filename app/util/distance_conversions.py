@@ -9,5 +9,4 @@ def cm_to_steps(distance, distance_per_step):
 
 def steps_to_cm(steps, distance_per_step):
 	distance = steps * distance_per_step
-      
-	return distance
+	return round(distance, 3)
