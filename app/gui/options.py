@@ -88,7 +88,7 @@ class Options(QWidget):
 		######################
 		# Calculations group #
 		######################
-		self.calculations = Calculation()
+		self.calculations = Calculation(home_parent)
 		self.main_layout.addWidget(self.calculations)
 
 		#################

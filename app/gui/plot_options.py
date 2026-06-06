@@ -15,6 +15,9 @@ class PlotOptions(QWidget):
 		self.callback_id = None
 
 		self.plotted_data = []
+		self.df = pd.DataFrame(data=None, columns=['x', "y1", "y2"])
+
+		self.sensor_renderers = []
 
 		self.main_layout = QHBoxLayout(self)
 		
@@ -35,11 +38,13 @@ class PlotOptions(QWidget):
 		self.sensor1 = QCheckBox("Sensor 1")
 		self.sensor1.setChecked(True)
 		self.sensor1.setStyleSheet("color: #FF0000; font-weight: bold")
+		self.sensor1.clicked.connect(self.toggle_sensor)
 		plot_actions_row1.addWidget(self.sensor1)
 
 		self.sensor2 = QCheckBox("Sensor 2")
 		self.sensor2.setChecked(True)
 		self.sensor2.setStyleSheet("color: #0000FF; font-weight: bold")
+		self.sensor2.clicked.connect(self.toggle_sensor)
 		plot_actions_row1.addWidget(self.sensor2)
 
 		plot_actions_row1.addStretch()
@@ -68,15 +73,16 @@ class PlotOptions(QWidget):
 			download.accept()
 
 	def save_plot_data(self):
-		df = pd.DataFrame(self.plotted_data)
+		self.df = pd.DataFrame(self.plotted_data)
 
 		path, _ = QFileDialog.getSaveFileName(self, "Save File As", "data.csv", "CSV Files (*.csv);; TXT Files (*.txt);; DAT Files (*.dat);; All Files (*)")
 
 		if path:
-			df.to_csv(path, index=False)
+			self.df.to_csv(path, index=False)
 
 	def reset_plot(self):
 		self.plotted_data = []
+		self.df = pd.DataFrame(data=None, columns=['x', "y1", "y2"])
 		self.home_parent.options.stop_data_collection()
 
 		def clear():
@@ -84,3 +90,10 @@ class PlotOptions(QWidget):
 			create_new_plot(self.doc, self.home_parent, self.home_parent.options.move_from.input_widget.value(), self.home_parent.options.move_to.input_widget.value())
 
 		self.doc.add_next_tick_callback(clear)
+
+	def toggle_sensor(self):
+		def toggle_sensors():
+			self.sensor_renderers[0].visible = self.sensor1.isChecked()
+			self.sensor_renderers[1].visible = self.sensor2.isChecked()
+
+		self.doc.add_next_tick_callback(toggle_sensors)
