@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QComboBox, QSizePolicy, QGroupBox, QFormLayout, QSlider, QSpinBox, QDoubleSpinBox, QCheckBox
 from serial import Serial
 from serial.serialutil import SerialException
@@ -133,6 +133,8 @@ class Options(QWidget):
 		actions_layout.addLayout(actions_row2)
 
 		self.main_layout.addWidget(actions_group)
+		
+		QTimer.singleShot(0, self.update_movement_options) # Queue the activation of the slot in order to process once plot_options already exists
 
 	def send_serial_command(self, command: str, device: str):
 		if device == None:
@@ -207,7 +209,8 @@ class Options(QWidget):
 			self.plot.x_range.start = int(round(self.move_from.value() - 2))
 			self.plot.x_range.end = int(round(self.move_to.value() + 2))
 
-		self.home_parent.plot_options.doc.add_next_tick_callback(update_plot_ranges)
+		if self.home_parent.plot_options.doc is not None:
+			self.home_parent.plot_options.doc.add_next_tick_callback(update_plot_ranges)
 
 	def update_slider_value(self):
 		value = self.motor_speed.value()
