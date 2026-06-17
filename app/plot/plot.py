@@ -28,7 +28,7 @@ class BokehPlot:
 
 		def update():
 			try:
-				self.ser = Serial(window.device, 115200, timeout=1)
+				self.ser = Serial(window.device, 115200)
 
 				data = self.ser.readline().decode("utf-8").strip()
 
