@@ -1,6 +1,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFormLayout, QDoubleSpinBox, QGroupBox, QSizePolicy, QPushButton, QLabel, QVBoxLayout, QSpacerItem, QHBoxLayout, QFileDialog, QRadioButton, QButtonGroup
 from app.gui.form_cell_units import FormCellUnits
+import numpy as np
 import pandas as pd
 
 from app.plot.plot import create_new_plot
@@ -68,6 +69,7 @@ class Calculation(QGroupBox):
 		form_layout.addRow(normalize_layout)
 
 		self.normalize_button_group = QButtonGroup()
+		# self.normalize_button_group.buttonClicked.connect(self.update_radio_buttons)
 		
 		normalize_sensor1 = QRadioButton("Sensor 1")
 		normalize_sensor1.setStyleSheet("color: #FF0000; font-weight: bold")
@@ -122,6 +124,42 @@ class Calculation(QGroupBox):
 
 		self.home_parent.plot_options.doc.add_next_tick_callback(plot)
 
+	def update_radio_buttons(self):
+		pass
+
 	def calculate_n2(self):
-		pan = 2.02547
-		self.n2_label.setText(f"n₂ index: {pan}")
+
+		df = self.home_parent.plot_options.df
+
+		match self.calculate_button_group.checkedId():
+			case 0:
+				curve = df.iloc[:, 1].to_numpy()
+			case 1:
+				curve = df.iloc[:, 2].to_numpy()
+
+			case _:
+				# TODO: show a warning pop-up on user screen
+				return
+
+		match self.normalize_button_group.checkedId():
+			case 0:
+				normalization_data = df.iloc[:, 1].to_numpy()
+			case 1:
+				normalization_data = df.iloc[:, 2].to_numpy()
+			case 2:
+				normalization_data = curve[-1]
+				
+			case _:
+				# TODO: show a warning pop-up on user screen
+				return
+
+		normalized_curve = []
+		for i, j in curve, normalization_data:
+			normalized_curve.append(i / j)
+
+		transmittance_diff_p_v = 0 	# TODO: Determine from normalized_curve variable
+		distance_diff_p_v = 0 		# TODO: Determine from normalized_curve variable
+
+		n2 = (transmittance_diff_p_v * (self.laser_wavelength.value()**2) * distance_diff_p_v) / (0.406 * ((1 - self.aperture_transmittance.value())**0.25) * 4 * np.pi * self.laser_power.value() * self.sample_length.value() * 1.7)
+		
+		self.n2_label.setText(f"n₂ index: {n2}")

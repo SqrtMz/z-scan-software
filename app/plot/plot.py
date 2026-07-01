@@ -17,7 +17,7 @@ class BokehPlot:
 			sources[0].data = {'x': plot_data.iloc[:, 0].tolist(), "y": plot_data.iloc[:, 1].tolist()}
 			sources[1].data = {'x': plot_data.iloc[:, 0].tolist(), "y": plot_data.iloc[:, 2].tolist()}
 
-		p = figure(x_range = (min_x_range - 2 , max_x_range + 2), y_range=(-1000, 33000), sizing_mode="stretch_both", x_axis_label="Distance (cm)", y_axis_label="Photodiode Voltage (V)", tools=["pan", "wheel_zoom", "box_zoom", "reset", "save"])
+		p = figure(x_range = (min_x_range - 2 , max_x_range + 2), y_range=(-1000, 33000), sizing_mode="stretch_both", x_axis_label="Distance (cm)", y_axis_label="Photodiode input", tools=["pan", "wheel_zoom", "box_zoom", "reset", "save"])
 		p.toolbar.logo = None
 
 		p.xaxis.axis_label_text_font_size = "12pt"
