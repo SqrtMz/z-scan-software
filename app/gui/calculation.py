@@ -96,7 +96,7 @@ class Calculation(QGroupBox):
 		self.calculate_button.clicked.connect(self.calculate_n2)
 		result_layout.addRow(self.calculate_button)
 
-		self.n2_label = QLabel(f"n₂ index: {self.n2}")
+		self.n2_label = QLabel(f"n₂ index: {self.n2} m²/W")
 		self.n2_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 		self.n2_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
 		result_layout.addRow(self.n2_label)
@@ -129,7 +129,6 @@ class Calculation(QGroupBox):
 		pass
 
 	def calculate_n2(self):
-
 		df = self.home_parent.plot_options.df
 
 		match self.calculate_button_group.checkedId():
@@ -155,22 +154,20 @@ class Calculation(QGroupBox):
 				return
 
 		normalized_curve = []
-
-		if len(normalization_data) == 1:
-			for i in curve:
-				normalized_curve.append(i / normalization_data[0])
-		else:
-			for i, j in curve, normalization_data:
-				normalized_curve.append(i / j)
+		for i in range(len(curve)):
+			if len(normalization_data) == 1:
+				normalized_curve.append(curve[i] / normalization_data[0])
+			else:
+				normalized_curve.append(curve[i] / normalization_data[i])
 
 		distance = df.iloc[:, 0].to_numpy()
 
 		transmittance_diff_p_v = max(normalized_curve) - min(normalized_curve)
-		print(transmittance_diff_p_v)
+		print(f"{transmittance_diff_p_v:.5e}")
 
-		distance_diff_p_v = distance[np.argmax(normalized_curve)] - distance[np.argmin(normalized_curve)]
-		print(distance_diff_p_v)
+		distance_diff_p_v = (distance[np.argmax(normalized_curve)] - distance[np.argmin(normalized_curve)]) * 10**-2
+		print(f"{distance_diff_p_v:.5e}")
 
-		n2 = (transmittance_diff_p_v * ((self.laser_wavelength.value() * 10e-9)**2) * distance_diff_p_v) / (0.406 * ((1 - self.aperture_transmittance.value())**0.25) * 4 * np.pi * (self.laser_power.value() * 10e-3) * (self.sample_length.value() * 10e-3) * 1.7)
-		
-		self.n2_label.setText(f"n₂ index: {n2}")
+		n2 = (transmittance_diff_p_v * ((self.laser_wavelength.value() * 10**-9)**2) * distance_diff_p_v) / (0.406 * ((1 - self.aperture_transmittance.value())**0.25) * 4 * np.pi * (self.laser_power.value() * 10**-3) * (self.sample_length.value() * 10**-3) * 1.7)
+
+		self.n2_label.setText(f"n₂ index: {n2:.5e} m²/W")
