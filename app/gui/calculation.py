@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QFormLayout, QDoubleSpinBox, QGroupBox, QSizePolic
 from app.gui.form_cell_units import FormCellUnits
 import numpy as np
 import pandas as pd
+from bokeh.plotting import figure, show
 
 from app.plot.plot import create_new_plot
 
@@ -147,19 +148,29 @@ class Calculation(QGroupBox):
 			case 1:
 				normalization_data = df.iloc[:, 2].to_numpy()
 			case 2:
-				normalization_data = curve[-1]
+				normalization_data = [curve[-1]]
 				
 			case _:
 				# TODO: show a warning pop-up on user screen
 				return
 
 		normalized_curve = []
-		for i, j in curve, normalization_data:
-			normalized_curve.append(i / j)
 
-		transmittance_diff_p_v = 0 	# TODO: Determine from normalized_curve variable
-		distance_diff_p_v = 0 		# TODO: Determine from normalized_curve variable
+		if len(normalization_data) == 1:
+			for i in curve:
+				normalized_curve.append(i / normalization_data[0])
+		else:
+			for i, j in curve, normalization_data:
+				normalized_curve.append(i / j)
 
-		n2 = (transmittance_diff_p_v * (self.laser_wavelength.value()**2) * distance_diff_p_v) / (0.406 * ((1 - self.aperture_transmittance.value())**0.25) * 4 * np.pi * self.laser_power.value() * self.sample_length.value() * 1.7)
+		distance = df.iloc[:, 0].to_numpy()
+
+		transmittance_diff_p_v = max(normalized_curve) - min(normalized_curve)
+		print(transmittance_diff_p_v)
+
+		distance_diff_p_v = distance[np.argmax(normalized_curve)] - distance[np.argmin(normalized_curve)]
+		print(distance_diff_p_v)
+
+		n2 = (transmittance_diff_p_v * ((self.laser_wavelength.value() * 10e-9)**2) * distance_diff_p_v) / (0.406 * ((1 - self.aperture_transmittance.value())**0.25) * 4 * np.pi * (self.laser_power.value() * 10e-3) * (self.sample_length.value() * 10e-3) * 1.7)
 		
 		self.n2_label.setText(f"n₂ index: {n2}")
