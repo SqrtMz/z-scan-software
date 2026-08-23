@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt
+import re
 from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QSizePolicy, QGroupBox, QFileDialog, QCheckBox
 from PySide6.QtWebEngineCore import QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
@@ -9,9 +9,6 @@ class PlotOptions(QWidget):
 		super().__init__()
 
 		self.home_parent = home_parent
-		self.doc = None
-		self.update_function = None
-		self.callback_id = None
 
 		self.plotted_data = []
 		self.df = pd.DataFrame(data=None, columns=['x', "y1", "y2"])
@@ -70,11 +67,16 @@ class PlotOptions(QWidget):
 			download.accept()
 
 	def save_plot_data(self):
-		self.df = pd.DataFrame(self.plotted_data)
+		if len(self.plotted_data) > 0:
+			self.df = pd.DataFrame(self.plotted_data)
 
-		path, _ = QFileDialog.getSaveFileName(self, "Save File As", "data.csv", "CSV Files (*.csv);; TXT Files (*.txt);; DAT Files (*.dat);; All Files (*)")
+		path, selection = QFileDialog.getSaveFileName(self, "Save File As", "data.csv", "CSV Files (*.csv);; TXT Files (*.txt);; DAT Files (*.dat);; All Files (*)")
+
+		match = re.search(r'\(\*(\.[a-zA-Z0-9]+)\)', selection)
+		extension = match.group(1) if match else ''
 
 		if path:
+			path = path + extension if not path.endswith(extension) else path
 			self.df.to_csv(path, index=False)
 
 	def reset_plot(self):
@@ -83,17 +85,14 @@ class PlotOptions(QWidget):
 		self.home_parent.options.stop_data_collection()
 
 		def clear():
-			for i in range(len(self.bokeh_plot.sources)):
-				self.bokeh_plot.sources[i].data = dict(x=[], y=[])
+			for i in range(len(self.home_parent.bokeh_plot.sources)):
+				self.home_parent.bokeh_plot.sources[i].data = dict(x=[], y=[])
 
-		self.doc.add_next_tick_callback(clear)
+		self.home_parent.bokeh_plot.doc.add_next_tick_callback(clear)
 
 	def toggle_sensor(self):
 		def toggle_sensors():
-			self.bokeh_plot.renderer1.visible = self.sensor1.isChecked()
-			self.bokeh_plot.renderer2.visible = self.sensor2.isChecked()
+			self.home_parent.bokeh_plot.renderer1.visible = self.sensor1.isChecked()
+			self.home_parent.bokeh_plot.renderer2.visible = self.sensor2.isChecked()
 
-		self.doc.add_next_tick_callback(toggle_sensors)
-
-	def set_bokeh_plot(self, bokeh_plot):
-		self.bokeh_plot = bokeh_plot
+		self.home_parent.bokeh_plot.doc.add_next_tick_callback(toggle_sensors)

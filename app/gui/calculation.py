@@ -117,10 +117,10 @@ class Calculation(QGroupBox):
 		self.home_parent.plot_options.df = loaded_df
 
 		def plot():
-			for i in range(len(self.home_parent.plot_options.bokeh_plot.sources)):
-				self.home_parent.plot_options.bokeh_plot.sources[i].data = dict(x=loaded_df['x'], y=loaded_df['y' + str(i + 1)])
+			for i in range(len(self.home_parent.bokeh_plot.sources)):
+				self.home_parent.bokeh_plot.sources[i].data = dict(x=loaded_df['x'], y=loaded_df['y' + str(i + 1)])
 
-		self.home_parent.plot_options.doc.add_next_tick_callback(plot)
+		self.home_parent.bokeh_plot.doc.add_next_tick_callback(plot)
 
 	def update_radio_buttons(self):
 		pass

@@ -169,27 +169,27 @@ class Options(QWidget):
 		self.start_data_collection()
 
 	def start_data_collection(self):
-		if self.home_parent.plot_options.callback_id == None:
+		if self.home_parent.bokeh_plot.callback_id == None:
 
 			def add_callback():
-				self.home_parent.plot_options.callback_id = self.home_parent.plot_options.doc.add_periodic_callback(self.home_parent.plot_options.update_function, 1)
+				self.home_parent.bokeh_plot.callback_id = self.home_parent.bokeh_plot.doc.add_periodic_callback(self.home_parent.bokeh_plot.update_function, 1)
 
-			self.home_parent.plot_options.doc.add_next_tick_callback(add_callback)
+			self.home_parent.bokeh_plot.doc.add_next_tick_callback(add_callback)
 
 	def stop_data_collection(self):
 		self.send_serial_command("stop,", self.home_parent.device)
 
-		if self.home_parent.plot_options.callback_id != None:
+		if self.home_parent.bokeh_plot.callback_id != None:
 
 			def remove_callback():
 				try:
-					self.home_parent.plot_options.doc.remove_periodic_callback(self.home_parent.plot_options.callback_id)
-					self.home_parent.plot_options.callback_id = None
+					self.home_parent.bokeh_plot.doc.remove_periodic_callback(self.home_parent.bokeh_plot.callback_id)
+					self.home_parent.bokeh_plot.callback_id = None
 				
 				except ValueError:
 					return
 
-			self.home_parent.plot_options.doc.add_next_tick_callback(remove_callback)
+			self.home_parent.bokeh_plot.doc.add_next_tick_callback(remove_callback)
 
 	def update_movement_options(self):
 		steps_per_rev = [200, 400, 800, 1600, 3200, 6400]
@@ -206,11 +206,11 @@ class Options(QWidget):
 		self.move_to.input_widget.setRange(self.move_from.value(), 100000)
 		
 		def update_plot_ranges():
-			self.plot.x_range.start = int(round(self.move_from.value() - 2))
-			self.plot.x_range.end = int(round(self.move_to.value() + 2))
+			self.home_parent.bokeh_plot.plot.x_range.start = int(round(self.move_from.value() - 2))
+			self.home_parent.bokeh_plot.plot.x_range.end = int(round(self.move_to.value() + 2))
 
-		if self.home_parent.plot_options.doc is not None:
-			self.home_parent.plot_options.doc.add_next_tick_callback(update_plot_ranges)
+		if self.home_parent.bokeh_plot != None and self.home_parent.bokeh_plot.doc != None:
+			self.home_parent.bokeh_plot.doc.add_next_tick_callback(update_plot_ranges)
 
 	def update_slider_value(self):
 		value = self.motor_speed.value()
