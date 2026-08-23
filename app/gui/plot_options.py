@@ -17,8 +17,6 @@ class PlotOptions(QWidget):
 		self.plotted_data = []
 		self.df = pd.DataFrame(data=None, columns=['x', "y1", "y2"])
 
-		self.sensor_renderers = []
-
 		self.main_layout = QHBoxLayout(self)
 		
 		self.plot_group = QGroupBox("Plot")
@@ -86,14 +84,17 @@ class PlotOptions(QWidget):
 		self.home_parent.options.stop_data_collection()
 
 		def clear():
-			self.doc.clear()
-			create_new_plot(self.doc, self.home_parent, self.home_parent.options.move_from.input_widget.value(), self.home_parent.options.move_to.input_widget.value())
+			for i in range(len(self.bokeh_plot.sources)):
+				self.bokeh_plot.sources[i].data = dict(x=[], y=[])
 
 		self.doc.add_next_tick_callback(clear)
 
 	def toggle_sensor(self):
 		def toggle_sensors():
-			self.sensor_renderers[0].visible = self.sensor1.isChecked()
-			self.sensor_renderers[1].visible = self.sensor2.isChecked()
+			self.bokeh_plot.r1.visible = self.sensor1.isChecked()
+			self.bokeh_plot.r2.visible = self.sensor2.isChecked()
 
 		self.doc.add_next_tick_callback(toggle_sensors)
+
+	def set_bokeh_plot(self, bokeh_plot):
+		self.bokeh_plot = bokeh_plot

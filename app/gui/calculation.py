@@ -120,8 +120,8 @@ class Calculation(QGroupBox):
 		self.home_parent.plot_options.df = loaded_df
 
 		def plot():
-			self.home_parent.plot_options.doc.clear()
-			create_new_plot(self.home_parent.plot_options.doc, self.home_parent, self.home_parent.options.move_from.input_widget.value(), self.home_parent.options.move_to.input_widget.value(), loaded_df)
+			for i in range(len(self.home_parent.plot_options.bokeh_plot.sources)):
+				self.home_parent.plot_options.bokeh_plot.sources[i].data = dict(x=loaded_df['x'], y=loaded_df['y' + str(i + 1)])
 
 		self.home_parent.plot_options.doc.add_next_tick_callback(plot)
 
