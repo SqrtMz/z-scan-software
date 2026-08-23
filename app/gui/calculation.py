@@ -3,9 +3,6 @@ from PySide6.QtWidgets import QFormLayout, QDoubleSpinBox, QGroupBox, QSizePolic
 from app.gui.form_cell_units import FormCellUnits
 import numpy as np
 import pandas as pd
-from bokeh.plotting import figure, show
-
-from app.plot.plot import create_new_plot
 
 class Calculation(QGroupBox):
 	def __init__(self, home_parent):
@@ -163,10 +160,8 @@ class Calculation(QGroupBox):
 		distance = df.iloc[:, 0].to_numpy()
 
 		transmittance_diff_p_v = max(normalized_curve) - min(normalized_curve)
-		print(f"{transmittance_diff_p_v:.5e}")
 
 		distance_diff_p_v = (distance[np.argmax(normalized_curve)] - distance[np.argmin(normalized_curve)]) * 10**-2
-		print(f"{distance_diff_p_v:.5e}")
 
 		n2 = (transmittance_diff_p_v * ((self.laser_wavelength.value() * 10**-9)**2) * distance_diff_p_v) / (0.406 * ((1 - self.aperture_transmittance.value())**0.25) * 4 * np.pi * (self.laser_power.value() * 10**-3) * (self.sample_length.value() * 10**-3) * 1.7)
 

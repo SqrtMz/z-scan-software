@@ -5,7 +5,7 @@ from app.gui.plot_options import PlotOptions
 
 class Home(QMainWindow):
 
-    def __init__(self, app):
+    def __init__(self, app, port):
         super().__init__()
 
         self.device = None
@@ -40,7 +40,7 @@ class Home(QMainWindow):
         layout.addWidget(self.options)
         self.options.setFixedWidth(400)
 
-        self.plot_options = PlotOptions(self)
+        self.plot_options = PlotOptions(self, port)
         layout.addWidget(self.plot_options)
         self.plot_options.setMinimumSize(320, 240)
 

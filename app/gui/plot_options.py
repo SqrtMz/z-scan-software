@@ -3,10 +3,9 @@ from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QS
 from PySide6.QtWebEngineCore import QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
 import pandas as pd
-from app.plot.plot import create_new_plot
 
 class PlotOptions(QWidget):
-	def __init__(self, home_parent):
+	def __init__(self, home_parent, port):
 		super().__init__()
 
 		self.home_parent = home_parent
@@ -25,7 +24,7 @@ class PlotOptions(QWidget):
 		self.main_layout.addWidget(self.plot_group)
 
 		self.plot = QWebEngineView()
-		self.plot.setUrl(f"http://localhost:5006/")
+		self.plot.setUrl(f"http://localhost:{port}/")
 		plot_layout.addWidget(self.plot)
 		profile = QWebEngineProfile.defaultProfile()
 		profile.downloadRequested.connect(self.capture_plot)
@@ -91,8 +90,8 @@ class PlotOptions(QWidget):
 
 	def toggle_sensor(self):
 		def toggle_sensors():
-			self.bokeh_plot.r1.visible = self.sensor1.isChecked()
-			self.bokeh_plot.r2.visible = self.sensor2.isChecked()
+			self.bokeh_plot.renderer1.visible = self.sensor1.isChecked()
+			self.bokeh_plot.renderer2.visible = self.sensor2.isChecked()
 
 		self.doc.add_next_tick_callback(toggle_sensors)
 
