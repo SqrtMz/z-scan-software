@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QComboBox, QSizePolicy, QGroupBox, QFormLayout, QSlider, QSpinBox, QDoubleSpinBox, QCheckBox
+from PySide6.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QComboBox, QSizePolicy, QGroupBox, QFormLayout, QSlider, QSpinBox, QDoubleSpinBox, QCheckBox, QMessageBox
 from serial import Serial
 from serial.serialutil import SerialException
 from app.gui.form_cell_units import FormCellUnits
@@ -136,11 +136,7 @@ class Options(QWidget):
 		
 		QTimer.singleShot(0, self.update_movement_options) # Queue the activation of the slot in order to process once plot_options already exists
 
-	def send_serial_command(self, command: str, device: str):
-		if device == None:
-			self.home_parent.statusBar().showMessage("No device selected")
-			return
-		
+	def send_serial_command(self, command: str, device: str):		
 		try:
 			ser = Serial(device, 115200, timeout=1)
 			print(command)
@@ -148,7 +144,7 @@ class Options(QWidget):
 			ser.close()
 		
 		except SerialException:
-			self.home_parent.statusBar().showMessage("Invalid device, please check the device selected")
+			QMessageBox.warning(self, "There was a problem with the device", "Invalid device, please check the device selected")
 			return
 
 	def start_execution(self):
@@ -162,7 +158,7 @@ class Options(QWidget):
 			adc_gain = str(self.adc_gain.currentIndex())
 
 		except ValueError:
-			self.home_parent.statusBar().showMessage("Invalid position")
+			QMessageBox.warning(self, "There was a problem", "Invalid position entered, please enter valid position data")
 			return
 
 		self.send_serial_command(f"execute,{move_from_pos},{move_to_pos},{motor_speed},{measure_separation},{stabilization_time},{is_accelerated},{adc_gain}", self.home_parent.device)

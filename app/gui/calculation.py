@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QFormLayout, QDoubleSpinBox, QGroupBox, QSizePolicy, QPushButton, QLabel, QVBoxLayout, QSpacerItem, QHBoxLayout, QFileDialog, QRadioButton, QButtonGroup
+from PySide6.QtWidgets import QFormLayout, QDoubleSpinBox, QGroupBox, QSizePolicy, QPushButton, QLabel, QVBoxLayout, QSpacerItem, QHBoxLayout, QFileDialog, QRadioButton, QButtonGroup, QMessageBox
 from app.gui.form_cell_units import FormCellUnits
 import numpy as np
 import pandas as pd
@@ -67,7 +67,6 @@ class Calculation(QGroupBox):
 		form_layout.addRow(normalize_layout)
 
 		self.normalize_button_group = QButtonGroup()
-		# self.normalize_button_group.buttonClicked.connect(self.update_radio_buttons)
 		
 		normalize_sensor1 = QRadioButton("Sensor 1")
 		normalize_sensor1.setStyleSheet("color: #FF0000; font-weight: bold")
@@ -101,29 +100,25 @@ class Calculation(QGroupBox):
 		layout.addLayout(result_layout)
 
 	def load_file(self):
-		path, _ = QFileDialog.getOpenFileName(self, "Open data file", '', "CSV Files (*.csv)")
-
-		if not path:
-			return
-		
 		try:
+			path, _ = QFileDialog.getOpenFileName(self, "Open data file", '', "CSV Files (*.csv);; TXT Files (*.txt);; DAT Files (*.dat);; All Files (*)")
+
+			if not path:
+				return
+
 			loaded_df = pd.read_csv(path)
+		
+			self.home_parent.plot_options.df = loaded_df
+
+			def plot():
+				for i in range(len(self.home_parent.bokeh_plot.sources)):
+					self.home_parent.bokeh_plot.sources[i].data = dict(x=loaded_df['x'], y=loaded_df['y' + str(i + 1)])
+
+			self.home_parent.bokeh_plot.doc.add_next_tick_callback(plot)
 
 		except Exception as e:
-			# TODO: Implement popup warning
-			print(f"There was an error trying to read the file: {e}")
+			QMessageBox.warning(self, "There was an error reading a file", f"There was an error trying to read the file:\n{e}")
 			return
-		
-		self.home_parent.plot_options.df = loaded_df
-
-		def plot():
-			for i in range(len(self.home_parent.bokeh_plot.sources)):
-				self.home_parent.bokeh_plot.sources[i].data = dict(x=loaded_df['x'], y=loaded_df['y' + str(i + 1)])
-
-		self.home_parent.bokeh_plot.doc.add_next_tick_callback(plot)
-
-	def update_radio_buttons(self):
-		pass
 
 	def calculate_n2(self):
 		df = self.home_parent.plot_options.df
@@ -135,7 +130,7 @@ class Calculation(QGroupBox):
 				curve = df.iloc[:, 2].to_numpy()
 
 			case _:
-				# TODO: show a warning pop-up on user screen
+				QMessageBox.warning(self, "Invalid curve data source", "Please select a source for the curve data")
 				return
 
 		match self.normalize_button_group.checkedId():
@@ -147,7 +142,7 @@ class Calculation(QGroupBox):
 				normalization_data = [curve[-1]]
 				
 			case _:
-				# TODO: show a warning pop-up on user screen
+				QMessageBox.warning(self, "Invalid normalization data source", "Please select a source for the normalization data")
 				return
 
 		normalized_curve = []

@@ -82,7 +82,6 @@ class PlotOptions(QWidget):
 	def reset_plot(self):
 		self.plotted_data = []
 		self.df = pd.DataFrame(data=None, columns=['x', "y1", "y2"])
-		self.home_parent.options.stop_data_collection()
 
 		def clear():
 			for i in range(len(self.home_parent.bokeh_plot.sources)):

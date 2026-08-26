@@ -1,3 +1,4 @@
+from PySide6.QtWidgets import QMessageBox
 from serial import Serial
 from serial.serialutil import SerialException
 from bokeh.models import ColumnDataSource
@@ -38,9 +39,7 @@ class BokehPlot:
 				self.doc.remove_periodic_callback(self.callback_id)
 				self.callback_id = None
 				self.ser.close()
-				print("There was an error while trying to read the data: " + str(e))
-				# TODO: Implement popup warning
-				window.statusBar().showMessage("Invalid device, please check the device selected")
+				QMessageBox.warning(window, "There was a communication problem", f"There was an error while trying to read the data: \n{e}")
 				return
 
 			x = steps_to_cm(int(x), window.options.distance_per_step)
