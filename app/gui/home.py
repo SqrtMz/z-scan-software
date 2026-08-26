@@ -1,7 +1,8 @@
-from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QStatusBar, QMessageBox
+from PySide6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QStatusBar
 from serial.tools import list_ports
 from app.gui.options import Options
 from app.gui.plot_options import PlotOptions
+from app.gui.about import AboutDialog
 
 class Home(QMainWindow):
 
@@ -26,7 +27,8 @@ class Home(QMainWindow):
 		help_menu = menu_bar.addMenu("&Help")
 
 		about_action = help_menu.addAction("About")
-		about_action.triggered.connect(lambda: QMessageBox.about(self, "About Z-Scan Controller", "Z-Scan Controller\n\nBy Carlos A. Vesga D.\n\nIn association with the GEOEL Group - Universidad del Atlántico\n\nhttps://github.com/SqrtMz/z-scan-software"))
+		about_dialog = AboutDialog(self)
+		about_action.triggered.connect(lambda: about_dialog.exec())
 
 		self.status_bar = QStatusBar()
 		self.setStatusBar(self.status_bar)
