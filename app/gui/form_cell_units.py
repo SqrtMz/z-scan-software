@@ -12,7 +12,6 @@ class FormCellUnits(QWidget):
 		self.label.setMinimumSize(label_x_size, label_y_size)
 
 		self.input_widget = input_widget
-		self.input_widget.setValue(input_widget_value)
 		self.input_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 		self.input_widget.valueChanged.connect(update_value_function)
 
@@ -21,6 +20,8 @@ class FormCellUnits(QWidget):
 
 		if hasattr(self.input_widget, "setRange"):
 			self.input_widget.setRange(min_range, max_range)
+
+		self.input_widget.setValue(input_widget_value)
 
 		main_layout.addWidget(self.label)
 		main_layout.addWidget(self.input_widget)

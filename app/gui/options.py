@@ -12,7 +12,6 @@ class Options(QWidget):
 
 		self.home_parent = home_parent
 		self.plot = None
-		self.state = "Standby"
 		self.distance_per_step = 0
 
 		self.main_layout = QVBoxLayout(self)
@@ -28,8 +27,11 @@ class Options(QWidget):
 		self.selected_device = QLabel("Select a device")
 		information_layout.addRow(self.selected_device)
 
-		self.motor_state = QLabel(f"Current state: {self.state}")
-		information_layout.addRow(self.motor_state)
+		self.distance_per_rev = FormCellUnits("Distance per revolution:", QDoubleSpinBox(), "cm", input_widget_value=0.5, update_value_function=self.update_movement_options)
+		information_layout.addRow(self.distance_per_rev)
+
+		self.steps_per_second = FormCellUnits("Maximum steps per second:", QSpinBox(), "", input_widget_value=16000, min_range=0, max_range=999999, update_value_function=self.update_movement_options)
+		information_layout.addRow(self.steps_per_second)
 
 		self.main_layout.addWidget(information_group)
 
@@ -68,8 +70,8 @@ class Options(QWidget):
 		self.stabilization_time = FormCellUnits("Stabilization time:", QSpinBox(), "ms")
 		movement_group_layout.addRow(self.stabilization_time)
 
-		self.distance_per_rev = FormCellUnits("Distance per revolution:", QDoubleSpinBox(), "cm", input_widget_value=0.5, update_value_function=self.update_movement_options)
-		movement_group_layout.addRow(self.distance_per_rev)
+		self.number_of_measures = FormCellUnits("Number of measures:", QSpinBox(), "", input_widget_value=1, update_value_function=self.update_movement_options)
+		movement_group_layout.addRow(self.number_of_measures)
 
 		self.microstep = QComboBox()
 		self.microstep.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
@@ -156,12 +158,14 @@ class Options(QWidget):
 			stabilization_time = str(int(self.stabilization_time.value()))
 			is_accelerated = '1' if self.is_accelerated.isChecked() else '0'
 			adc_gain = str(self.adc_gain.currentIndex())
+			number_measures = str(int(self.number_of_measures.value()))
+			steps_per_second = str(int(self.steps_per_second.value()))
 
 		except ValueError:
 			QMessageBox.warning(self, "There was a problem", "Invalid position entered, please enter valid position data")
 			return
 
-		self.send_serial_command(f"execute,{move_from_pos},{move_to_pos},{motor_speed},{measure_separation},{stabilization_time},{is_accelerated},{adc_gain}", self.home_parent.device)
+		self.send_serial_command(f"execute,{move_from_pos},{move_to_pos},{motor_speed},{measure_separation},{stabilization_time},{is_accelerated},{adc_gain},{number_measures},{steps_per_second}", self.home_parent.device)
 		self.start_data_collection()
 
 	def start_data_collection(self):
@@ -213,10 +217,10 @@ class Options(QWidget):
 		self.motor_speed_label.setText(f"Motor speed: {value + 1}%")
 
 	def go_to_start(self):
-		self.send_serial_command("go_to_start,", self.home_parent.device)
+		self.send_serial_command(f"go_to_start,{self.steps_per_second.value()}", self.home_parent.device)
 
 	def go_to_end(self):
-		self.send_serial_command("go_to_end,", self.home_parent.device)
+		self.send_serial_command(f"go_to_end,{self.steps_per_second.value()}", self.home_parent.device)
 
 	def stop_and_restart(self):
 		self.stop_data_collection()

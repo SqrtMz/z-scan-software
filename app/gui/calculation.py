@@ -101,7 +101,7 @@ class Calculation(QGroupBox):
 
 	def load_file(self):
 		try:
-			path, _ = QFileDialog.getOpenFileName(self, "Open data file", '', "CSV Files (*.csv);; TXT Files (*.txt);; DAT Files (*.dat);; All Files (*)")
+			path, _ = QFileDialog.getOpenFileName(self, "Open data file", '', "CSV Files (*.csv);; TXT Files (*.txt);; All Files (*)")
 
 			if not path:
 				return
@@ -122,6 +122,8 @@ class Calculation(QGroupBox):
 
 	def calculate_n2(self):
 		df = pd.DataFrame(self.home_parent.plot_options.plotted_data)
+
+		# TODO: Verifiy if df has data, else return prematurely
 
 		match self.calculate_button_group.checkedId():
 			case 0:

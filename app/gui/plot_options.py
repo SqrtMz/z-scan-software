@@ -69,7 +69,7 @@ class PlotOptions(QWidget):
 		if len(self.plotted_data) > 0:
 			self.df = pd.DataFrame(self.plotted_data)
 
-		path, selection = QFileDialog.getSaveFileName(self, "Save File As", "data.csv", "CSV Files (*.csv);; TXT Files (*.txt);; DAT Files (*.dat);; All Files (*)")
+		path, selection = QFileDialog.getSaveFileName(self, "Save File As", "data.csv", "CSV Files (*.csv);; TXT Files (*.txt);; All Files (*)")
 
 		match = re.search(r'\(\*(\.[a-zA-Z0-9]+)\)', selection)
 		extension = match.group(1) if match else ''
