@@ -123,7 +123,8 @@ class Calculation(QGroupBox):
 	def calculate_n2(self):
 		df = pd.DataFrame(self.home_parent.plot_options.plotted_data)
 
-		# TODO: Verifiy if df has data, else return prematurely
+		if df.empty:
+			return
 
 		match self.calculate_button_group.checkedId():
 			case 0:

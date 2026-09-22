@@ -13,7 +13,6 @@ class FormCellUnits(QWidget):
 
 		self.input_widget = input_widget
 		self.input_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-		self.input_widget.valueChanged.connect(update_value_function)
 
 		if hasattr(self.input_widget, "setDecimals"):
 			self.input_widget.setDecimals(decimals)
@@ -22,6 +21,7 @@ class FormCellUnits(QWidget):
 			self.input_widget.setRange(min_range, max_range)
 
 		self.input_widget.setValue(input_widget_value)
+		self.input_widget.valueChanged.connect(update_value_function)
 
 		main_layout.addWidget(self.label)
 		main_layout.addWidget(self.input_widget)
