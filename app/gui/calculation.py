@@ -161,6 +161,8 @@ class Calculation(QGroupBox):
 
 		distance_diff_p_v = (distance[np.argmax(normalized_curve)] - distance[np.argmin(normalized_curve)]) * 10**-2
 
-		n2 = (transmittance_diff_p_v * ((self.laser_wavelength.value() * 10**-9)**2) * distance_diff_p_v) / (0.406 * ((1 - self.aperture_transmittance.value())**0.25) * 4 * np.pi * (self.laser_power.value() * 10**-3) * (self.sample_length.value() * 10**-3) * 1.7)
+		# n2 = (transmittance_diff_p_v * ((self.laser_wavelength.value() * 10**-9)**2) * distance_diff_p_v) / (0.406 * ((1 - self.aperture_transmittance.value())**0.25) * 4 * np.pi * (self.laser_power.value() * 10**-3) * (self.sample_length.value() * 10**-3) * 1.7)
+
+		n2 = (transmittance_diff_p_v * ((self.laser_wavelength.value() * 10**-9)**2) * distance_diff_p_v) / (0.406 * 4 * np.pi * (self.laser_power.value() * 10**-3) * (self.sample_length.value() * 10**-3) * 1.7)
 
 		self.n2_label.setText(f"n₂ index: {n2:.5e} m²/W")
