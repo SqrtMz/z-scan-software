@@ -41,8 +41,8 @@ class Calculation(QGroupBox):
 		self.sample_length = FormCellUnits("Sample length:", QDoubleSpinBox(), "mm")
 		form_layout.addRow(self.sample_length)
 
-		self.aperture_transmittance = FormCellUnits("Aperture transmittance:", QDoubleSpinBox(), input_widget_value=0.01)
-		form_layout.addRow(self.aperture_transmittance)
+		# self.aperture_transmittance = FormCellUnits("Aperture transmittance:", QDoubleSpinBox(), input_widget_value=0.01)
+		# form_layout.addRow(self.aperture_transmittance)
 
 		form_layout.addRow(QLabel("Curve:"))
 
@@ -142,7 +142,14 @@ class Calculation(QGroupBox):
 			case 1:
 				normalization_data = df.iloc[:, 2].to_numpy()
 			case 2:
-				normalization_data = [curve[-1]]
+				last_items = curve[-20:]
+
+				normalization_data = 0
+				for i in last_items:
+					normalization_data += i
+
+				normalization_data /= len(last_items)
+				normalization_data = [normalization_data]
 				
 			case _:
 				QMessageBox.warning(self, "Invalid normalization data source", "Please select a source for the normalization data")
