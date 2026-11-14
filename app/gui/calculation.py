@@ -142,7 +142,7 @@ class Calculation(QGroupBox):
 			case 1:
 				normalization_data = df.iloc[:, 2].to_numpy()
 			case 2:
-				last_items = curve[-20:]
+				last_items = curve[-100:]
 
 				normalization_data = 0
 				for i in last_items:

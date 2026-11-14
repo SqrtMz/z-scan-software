@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "bokeh>=3.8.2",
+    "jupyter>=1.1.1",
     "pyserial>=3.5",
     "pyside6>=6.10.2",
+    "scipy>=1.18.1",
 ]
